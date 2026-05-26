@@ -1,0 +1,574 @@
+{
+  "info": {
+    "name": "VidyaMission API",
+    "description": "Complete REST API for the VidyaMission student learning platform.\n\nBase URL: {{base_url}}\n\nSet the following environment variables:\n- base_url: http://localhost:8000/api\n- token: (filled automatically after login)\n- student_token, teacher_token, admin_token",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000/api", "type": "string"},
+    {"key": "token",    "value": "", "type": "string"}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"email\": \"student@example.com\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/auth/send-otp", "host": ["{{base_url}}"], "path": ["auth", "send-otp"]}
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"email\": \"student@example.com\", \"otp\": \"123456\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/auth/verify-otp", "host": ["{{base_url}}"], "path": ["auth", "verify-otp"]}
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/profile", "host": ["{{base_url}}"], "path": ["profile"]}
+          }
+        },
+        {
+          "name": "Setup Profile",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Arjun Das\", \"class\": \"Class 10\", \"school_name\": \"Kolkata High School\", \"district\": \"Kolkata\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/profile/setup", "host": ["{{base_url}}"], "path": ["profile", "setup"]}
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Arjun Kumar Das\", \"district\": \"Howrah\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/profile/update", "host": ["{{base_url}}"], "path": ["profile", "update"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Content (Trial Check)",
+      "item": [
+        {
+          "name": "Get Subjects",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/subjects", "host": ["{{base_url}}"], "path": ["subjects"]}
+          }
+        },
+        {
+          "name": "Get Chapters for Subject",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/subjects/1/chapters", "host": ["{{base_url}}"], "path": ["subjects", "1", "chapters"]}
+          }
+        },
+        {
+          "name": "Get Chapter Detail",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1", "host": ["{{base_url}}"], "path": ["chapters", "1"]}
+          }
+        },
+        {
+          "name": "Mark Chapter Complete",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1/complete", "host": ["{{base_url}}"], "path": ["chapters", "1", "complete"]}
+          }
+        },
+        {
+          "name": "Get Recorded Classes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1/recorded-classes", "host": ["{{base_url}}"], "path": ["chapters", "1", "recorded-classes"]}
+          }
+        },
+        {
+          "name": "Get Recorded Class Detail",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/recorded-classes/1", "host": ["{{base_url}}"], "path": ["recorded-classes", "1"]}
+          }
+        },
+        {
+          "name": "Get Live Classes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1/live-classes", "host": ["{{base_url}}"], "path": ["chapters", "1", "live-classes"]}
+          }
+        },
+        {
+          "name": "Get Notes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1/notes", "host": ["{{base_url}}"], "path": ["chapters", "1", "notes"]}
+          }
+        },
+        {
+          "name": "Get Note Detail",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/notes/1", "host": ["{{base_url}}"], "path": ["notes", "1"]}
+          }
+        },
+        {
+          "name": "Get Tests",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/chapters/1/tests", "host": ["{{base_url}}"], "path": ["chapters", "1", "tests"]}
+          }
+        },
+        {
+          "name": "Get Test (Shuffled Questions)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/tests/1", "host": ["{{base_url}}"], "path": ["tests", "1"]}
+          }
+        },
+        {
+          "name": "Submit Test Attempt",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"answers\": {\"1\": \"a\", \"2\": \"b\", \"3\": \"c\"}}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/tests/1/attempt", "host": ["{{base_url}}"], "path": ["tests", "1", "attempt"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/subscriptions", "host": ["{{base_url}}"], "path": ["subscriptions"]}
+          }
+        },
+        {
+          "name": "Current Subscription",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/subscriptions/current", "host": ["{{base_url}}"], "path": ["subscriptions", "current"]}
+          }
+        },
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/subscriptions/1/initiate", "host": ["{{base_url}}"], "path": ["subscriptions", "1", "initiate"]}
+          }
+        },
+        {
+          "name": "Payment Webhook (Razorpay)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}, {"key": "X-Razorpay-Signature", "value": "{{webhook_signature}}"}, {"key": "X-Payment-Gateway", "value": "razorpay"}],
+            "body": {"mode": "raw", "raw": "{\"event\": \"payment.captured\", \"payload\": {\"payment\": {\"entity\": {\"id\": \"pay_test123\", \"order_id\": \"order_test456\"}}}}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/subscriptions/webhook", "host": ["{{base_url}}"], "path": ["subscriptions", "webhook"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"]}
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/notifications/1/read", "host": ["{{base_url}}"], "path": ["notifications", "1", "read"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teacher",
+      "item": [
+        {
+          "name": "Teacher Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{teacher_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/teacher/dashboard", "host": ["{{base_url}}"], "path": ["teacher", "dashboard"]}
+          }
+        },
+        {
+          "name": "Teacher Subjects",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{teacher_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/teacher/subjects", "host": ["{{base_url}}"], "path": ["teacher", "subjects"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Users",
+      "item": [
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/students?search=arjun&page=1", "host": ["{{base_url}}"], "path": ["admin", "students"], "query": [{"key": "search", "value": "arjun"}, {"key": "page", "value": "1"}]}
+          }
+        },
+        {
+          "name": "List Teachers",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/teachers", "host": ["{{base_url}}"], "path": ["admin", "teachers"]}
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Rina Ghosh\", \"email\": \"rina@school.com\", \"bio\": \"10 years teaching experience\", \"qualification\": \"M.Sc Physics\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/teachers", "host": ["{{base_url}}"], "path": ["admin", "teachers"]}
+          }
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Rina Ghosh Updated\", \"is_active\": true}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/teachers/1", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1"]}
+          }
+        },
+        {
+          "name": "Deactivate Teacher",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/teachers/1", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1"]}
+          }
+        },
+        {
+          "name": "Assign Subjects to Teacher",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"subject_ids\": [1, 4, 6]}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/teachers/1/assign-subjects", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1", "assign-subjects"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Subjects & Chapters",
+      "item": [
+        {
+          "name": "List Subjects",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/subjects", "host": ["{{base_url}}"], "path": ["admin", "subjects"]}
+          }
+        },
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Chemistry\", \"color\": \"#14B8A6\", \"icon\": \"book-chemistry\", \"sort_order\": 8}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/subjects", "host": ["{{base_url}}"], "path": ["admin", "subjects"]}
+          }
+        },
+        {
+          "name": "Update Subject",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Bengali Language\", \"color\": \"#EF4444\", \"icon\": \"book-bengali\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/subjects/1", "host": ["{{base_url}}"], "path": ["admin", "subjects", "1"]}
+          }
+        },
+        {
+          "name": "Delete Subject",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/subjects/8", "host": ["{{base_url}}"], "path": ["admin", "subjects", "8"]}
+          }
+        },
+        {
+          "name": "Get Subject Chapters",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/subjects/1/chapters", "host": ["{{base_url}}"], "path": ["admin", "subjects", "1", "chapters"]}
+          }
+        },
+        {
+          "name": "Create Chapter",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"subject_id\": 1, \"title\": \"Chapter 1: The Letter\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/chapters", "host": ["{{base_url}}"], "path": ["admin", "chapters"]}
+          }
+        },
+        {
+          "name": "Update Chapter",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"subject_id\": 1, \"title\": \"Chapter 1: Introduction\", \"sort_order\": 1, \"is_active\": true}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/chapters/1", "host": ["{{base_url}}"], "path": ["admin", "chapters", "1"]}
+          }
+        },
+        {
+          "name": "Delete Chapter",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/chapters/1", "host": ["{{base_url}}"], "path": ["admin", "chapters", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Recorded Classes",
+      "item": [
+        {
+          "name": "List Recorded Classes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/recorded-classes", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes"]}
+          }
+        },
+        {
+          "name": "Create Recorded Class",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Introduction to Bengali Alphabet\", \"description\": \"Learn the basics\", \"gdrive_file_id\": \"1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms\", \"duration_seconds\": 1800}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/recorded-classes", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes"]}
+          }
+        },
+        {
+          "name": "Update Recorded Class",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Bengali Alphabet — Updated\", \"gdrive_file_id\": \"new_file_id_here\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/recorded-classes/1", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes", "1"]}
+          }
+        },
+        {
+          "name": "Delete Recorded Class",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/recorded-classes/1", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Live Classes",
+      "item": [
+        {
+          "name": "List Live Classes",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/live-classes", "host": ["{{base_url}}"], "path": ["admin", "live-classes"]}
+          }
+        },
+        {
+          "name": "Create Live Class",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Live Q&A Session\", \"platform\": \"google_meet\", \"meeting_url\": \"https://meet.google.com/abc-defg-hij\", \"scheduled_at\": \"2026-06-01 10:00:00\", \"duration_minutes\": 60}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/live-classes", "host": ["{{base_url}}"], "path": ["admin", "live-classes"]}
+          }
+        },
+        {
+          "name": "Update Live Class Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"status\": \"live\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/live-classes/1/status", "host": ["{{base_url}}"], "path": ["admin", "live-classes", "1", "status"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Tests & Questions",
+      "item": [
+        {
+          "name": "List Tests",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/tests", "host": ["{{base_url}}"], "path": ["admin", "tests"]}
+          }
+        },
+        {
+          "name": "Create Test",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"title\": \"Bengali Chapter 1 Test\", \"total_marks\": 20, \"pass_marks\": 10, \"duration_minutes\": 20}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/tests", "host": ["{{base_url}}"], "path": ["admin", "tests"]}
+          }
+        },
+        {
+          "name": "Bulk Add Questions",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"questions\": [{\"question_text\": \"বাংলা বর্ণমালায় কয়টি স্বরবর্ণ আছে?\", \"option_a\": \"১০\", \"option_b\": \"১১\", \"option_c\": \"১২\", \"option_d\": \"১৩\", \"correct_option\": \"b\", \"marks\": 2}, {\"question_text\": \"বাংলা বর্ণমালায় কয়টি ব্যঞ্জনবর্ণ আছে?\", \"option_a\": \"৩৫\", \"option_b\": \"৩৯\", \"option_c\": \"৪০\", \"option_d\": \"৪৫\", \"correct_option\": \"b\", \"marks\": 2}]}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/tests/1/questions", "host": ["{{base_url}}"], "path": ["admin", "tests", "1", "questions"]}
+          }
+        },
+        {
+          "name": "Update Question",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"question_text\": \"Updated question?\", \"option_a\": \"A\", \"option_b\": \"B\", \"option_c\": \"C\", \"option_d\": \"D\", \"correct_option\": \"a\", \"marks\": 1}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/questions/1", "host": ["{{base_url}}"], "path": ["admin", "questions", "1"]}
+          }
+        },
+        {
+          "name": "Delete Question",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/questions/1", "host": ["{{base_url}}"], "path": ["admin", "questions", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Subscriptions",
+      "item": [
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/subscription-plans", "host": ["{{base_url}}"], "path": ["admin", "subscription-plans"]}
+          }
+        },
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Bi-Annual\", \"description\": \"6 months plan\", \"price\": 899, \"duration_days\": 180, \"features\": [\"All subjects\", \"Priority support\"]}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/subscription-plans", "host": ["{{base_url}}"], "path": ["admin", "subscription-plans"]}
+          }
+        },
+        {
+          "name": "User Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/user-subscriptions?status=completed", "host": ["{{base_url}}"], "path": ["admin", "user-subscriptions"], "query": [{"key": "status", "value": "completed"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Analytics",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/analytics/overview", "host": ["{{base_url}}"], "path": ["admin", "analytics", "overview"]}
+          }
+        },
+        {
+          "name": "Popular Subjects",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/analytics/popular-subjects", "host": ["{{base_url}}"], "path": ["admin", "analytics", "popular-subjects"]}
+          }
+        },
+        {
+          "name": "Test Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/admin/analytics/test-performance", "host": ["{{base_url}}"], "path": ["admin", "analytics", "test-performance"]}
+          }
+        },
+        {
+          "name": "Broadcast Notification",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"title\": \"New Live Class Tomorrow!\", \"body\": \"Join us for a live Q&A session on Mathematics tomorrow at 10 AM.\", \"user_ids\": \"all\"}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/admin/notifications/broadcast", "host": ["{{base_url}}"], "path": ["admin", "notifications", "broadcast"]}
+          }
+        }
+      ]
+    }
+  ]
+}
