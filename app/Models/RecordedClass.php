@@ -12,6 +12,8 @@ class RecordedClass extends Model
         'teacher_id',
         'title',
         'description',
+        'video_type',
+        'video_url',
         'gdrive_file_id',
         'gdrive_embed_url',
         'thumbnail_url',
@@ -22,7 +24,7 @@ class RecordedClass extends Model
     protected function casts(): array
     {
         return [
-            'is_active'        => 'boolean',
+            'is_active' => 'boolean',
             'duration_seconds' => 'integer',
         ];
     }
