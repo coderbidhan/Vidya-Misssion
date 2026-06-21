@@ -24,7 +24,7 @@ class RecordedClassController extends Controller
         $classes = $chapter->recordedClasses()
             ->where('is_active', true)
             ->with(['teacher:id,name'])
-            ->get(['id', 'chapter_id', 'teacher_id', 'title', 'description', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds']);
+            ->get(['id', 'chapter_id', 'teacher_id', 'title', 'description', 'video_type', 'video_url', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds']);
 
         return $this->successResponse($classes);
     }
@@ -41,7 +41,7 @@ class RecordedClassController extends Controller
             ->findOrFail($id);
 
         return $this->successResponse(
-            $class->only(['id', 'title', 'description', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds', 'teacher'])
+            $class->only(['id', 'title', 'description', 'video_type', 'video_url', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds', 'teacher'])
         );
     }
 }

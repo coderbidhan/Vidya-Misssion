@@ -150,7 +150,7 @@ let selectedTestId = null;
 
 async function loadTests() {
     const res = await api('GET', '/admin/tests');
-    const tests = res.data?.data || [];
+    const tests = res.data || [];
     document.getElementById('testCountBadge').textContent = tests.length;
 
     // Load chapter dropdown for add test modal
@@ -192,7 +192,7 @@ async function loadQuestions(testId) {
     const res = await api('GET', `/admin/tests/${testId}/questions`).catch(() => null);
     // Fallback: fetch all tests and find this one
     const listRes = await api('GET', `/admin/tests?page=1`);
-    const test = (listRes.data?.data||[]).find(t => t.id === testId);
+    const test = (listRes.data || []).find(t => t.id === testId);
 
     // We don't have a direct questions list endpoint in admin; questions come via bulk store
     // Show a placeholder with info

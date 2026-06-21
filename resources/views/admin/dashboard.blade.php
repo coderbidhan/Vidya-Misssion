@@ -106,13 +106,13 @@ window._pageInit = async function() {
         ).join('') || '<tr><td colspan="2" style="text-align:center;padding:2rem;color:var(--text-muted)">No data yet</td></tr>';
 
         // Tests
-        document.getElementById('testRows').innerHTML = (tests.data?.data || []).slice(0,5).map(t =>
+        document.getElementById('testRows').innerHTML = (tests.data || []).slice(0,5).map(t =>
             `<tr><td>${t.title}</td><td><span class="badge badge-neutral">${t.attempts}</span></td>
             <td><span class="badge ${parseFloat(t.pass_rate)>60?'badge-success':'badge-warning'}">${t.pass_rate}</span></td></tr>`
         ).join('') || '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted)">No tests yet</td></tr>';
 
         // Recent students
-        const rows = students.data?.data || [];
+        const rows = students.data || [];
         document.getElementById('recentStudents').innerHTML = rows.length ? rows.slice(0,8).map((s, i) =>
             `<tr>
                 <td style="color:var(--text-muted)">#${i+1}</td>

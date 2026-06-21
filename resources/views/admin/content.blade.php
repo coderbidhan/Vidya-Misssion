@@ -104,10 +104,21 @@
                 <label class="form-label">Title *</label>
                 <input type="text" class="form-control" id="rc-title" placeholder="Class title">
             </div>
-            <div class="form-group">
-                <label class="form-label">Google Drive File ID *</label>
-                <input type="text" class="form-control" id="rc-gdrive" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74…">
-                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem">ℹ️ Paste the file ID from the Drive share URL (never exposed to students)</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Video Source *</label>
+                    <select class="form-control" id="rc-video-type" onchange="toggleVideoSourceHelp()">
+                        <option value="google_drive">Google Drive</option>
+                        <option value="youtube">YouTube</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Video URL or ID *</label>
+                    <input type="text" class="form-control" id="rc-video-url" placeholder="Paste link or ID here…">
+                </div>
+            </div>
+            <div id="rc-video-help" style="font-size:0.75rem;color:var(--text-muted);margin-top:-0.5rem;margin-bottom:1rem">
+                ℹ️ Paste the Google Drive share link or direct File ID (safely resolved for students).
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -178,6 +189,8 @@
                         <option value="google_meet">Google Meet</option>
                         <option value="zoom">Zoom</option>
                         <option value="teams">MS Teams</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="google_drive">Google Drive</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
@@ -335,13 +348,16 @@ async function cascadeContent(prefix, step) {
 
 async function loadRecorded(page = 1) {
     const res = await api('GET', `/admin/recorded-classes?page=${page}`);
-    const data = res.data?.data || [];
+    const data = res.data || [];
     document.getElementById('recordedBody').innerHTML = data.length ? data.map(c => `
         <tr>
             <td><div style="font-weight:600">${c.title}</div><div style="font-size:0.75rem;color:var(--text-muted)">${c.description||''}</div></td>
             <td>${c.chapter?.title||'—'}</td>
             <td>${c.teacher?.name||'—'}</td>
-            <td>${c.duration_seconds ? Math.floor(c.duration_seconds/60)+'m' : '—'}</td>
+            <td>
+                <span class="badge badge-neutral">${c.duration_seconds ? Math.floor(c.duration_seconds/60)+'m' : '—'}</span>
+                <span class="badge badge-info" style="margin-left:0.25rem">${c.video_type === 'youtube' ? 'YouTube' : 'Google Drive'}</span>
+            </td>
             <td><span class="badge ${c.is_active?'badge-success':'badge-neutral'}">${c.is_active?'Active':'Hidden'}</span></td>
             <td><button class="btn btn-danger btn-sm" onclick="deleteRecorded(${c.id})">🗑</button></td>
         </tr>
@@ -350,14 +366,22 @@ async function loadRecorded(page = 1) {
 
 async function loadLive(page = 1) {
     const res = await api('GET', `/admin/live-classes?page=${page}`);
-    const data = res.data?.data || [];
+    const data = res.data || [];
     const statusColors = { scheduled:'badge-info', live:'badge-success', completed:'badge-neutral', cancelled:'badge-danger' };
     document.getElementById('liveBody').innerHTML = data.length ? data.map(c => `
         <tr>
             <td><div style="font-weight:600">${c.title}</div></td>
             <td>${c.chapter?.title||'—'}</td>
             <td>${c.teacher?.name||'—'}</td>
-            <td><span class="badge badge-neutral">${c.platform?.replace('_',' ')||'—'}</span></td>
+            <td>
+                <span class="badge badge-neutral">
+                    ${c.platform === 'google_drive' ? 'Google Drive' : 
+                      (c.platform === 'youtube' ? 'YouTube' : 
+                       (c.platform === 'google_meet' ? 'Google Meet' : 
+                        (c.platform === 'zoom' ? 'Zoom' : 
+                         (c.platform === 'teams' ? 'MS Teams' : (c.platform?.replace('_', ' ') || '—')))))}
+                </span>
+            </td>
             <td style="font-size:0.8rem">${c.scheduled_at ? new Date(c.scheduled_at).toLocaleString('en-IN') : '—'}</td>
             <td>
                 <select class="filter-select" style="font-size:0.75rem;padding:0.3rem 0.5rem"
@@ -373,7 +397,7 @@ async function loadLive(page = 1) {
 
 async function loadNotes() {
     const res = await api('GET', '/admin/notes');
-    const data = res.data?.data || [];
+    const data = res.data || [];
     document.getElementById('notesBody').innerHTML = data.length ? data.map(n => `
         <tr>
             <td style="font-weight:600">${n.title}</td>
@@ -392,13 +416,27 @@ async function createRecorded() {
             chapter_id: parseInt(document.getElementById('rc-chapter').value),
             teacher_id: parseInt(document.getElementById('rc-teacher').value),
             title: document.getElementById('rc-title').value,
-            gdrive_file_id: document.getElementById('rc-gdrive').value,
+            video_type: document.getElementById('rc-video-type').value,
+            video_url: document.getElementById('rc-video-url').value,
             duration_seconds: parseInt(document.getElementById('rc-duration').value) || null,
             thumbnail_url: document.getElementById('rc-thumb').value || null,
             description: document.getElementById('rc-desc').value || null,
         });
         toast('Recorded class added!', 'success'); closeModal('addRecordedModal'); loadRecorded();
     } catch(e) { toast(e.message, 'error'); }
+}
+
+function toggleVideoSourceHelp() {
+    const type = document.getElementById('rc-video-type').value;
+    const help = document.getElementById('rc-video-help');
+    const placeholder = document.getElementById('rc-video-url');
+    if (type === 'youtube') {
+        help.innerHTML = 'ℹ️ Paste the YouTube video link (e.g., https://www.youtube.com/watch?v=...) or 11-char Video ID.';
+        placeholder.placeholder = 'https://www.youtube.com/watch?v=...';
+    } else {
+        help.innerHTML = 'ℹ️ Paste the Google Drive share link or direct File ID (safely resolved for students).';
+        placeholder.placeholder = 'Paste Drive link or File ID…';
+    }
 }
 
 async function createLive() {
