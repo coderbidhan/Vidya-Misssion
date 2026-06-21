@@ -58,11 +58,12 @@
                         <label class="form-label">Mobile</label>
                         <input type="text" class="form-control" id="t-mobile" placeholder="+91 98765 43210">
                     </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Password *</label>
                         <input type="text" class="form-control" id="t-password" placeholder="Min. 6 chars" required>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Qualification</label>
                         <input type="text" class="form-control" id="t-qual" placeholder="M.Sc Physics">
@@ -105,26 +106,27 @@
                     <label class="form-label">Mobile</label>
                     <input type="text" class="form-control" id="et-mobile">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="text" class="form-control" id="et-password" placeholder="Leave blank to keep unchanged">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Qualification</label>
-                        <input type="text" class="form-control" id="et-qual">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="text" class="form-control" id="et-password" placeholder="Leave blank to keep unchanged">
                 </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Qualification</label>
+                    <input type="text" class="form-control" id="et-qual">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" id="et-active">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Bio</label>
                 <textarea class="form-control" id="et-bio" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Status</label>
-                <select class="form-control" id="et-active">
-                    <option value="1">Active</option>
-                    <option value="0">Inactive</option>
-                </select>
             </div>
         </div>
         <div class="modal-footer">
@@ -148,7 +150,6 @@
             <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
                 <select id="as-class" class="form-control" onchange="updateAssignSubjects()">
                     <option value="">Select Class...</option>
-                    ${[...Array(12).keys()].map(i=>`<option value="${i+1}">Class ${i+1}</option>`).join('')}
                 </select>
                 <select id="as-subject" class="form-control" disabled>
                     <option value="">Select Subject...</option>
@@ -201,7 +202,17 @@ async function loadTeachers(page = 1) {
         const meta = res.meta;
         if (meta && meta.last_page > 1) {
             document.getElementById('paginationBar').style.display = 'flex';
-            document.getElementById('paginationInfo').textContent = `${meta.from}–${meta.to} of ${meta.total}`;
+            document.getElementById('paginationInfo').textContent = `${meta.from || '?'}–${meta.to || '?'} of ${meta.total}`;
+            const btns = [];
+            for (let p = Math.max(1, meta.current_page - 2); p <= Math.min(meta.last_page, meta.current_page + 2); p++) {
+                btns.push(`<button class="page-btn ${p===meta.current_page?'active':''}" onclick="loadTeachers(${p})">${p}</button>`);
+            }
+            document.getElementById('paginationBtns').innerHTML =
+                `<button class="page-btn" onclick="loadTeachers(${meta.current_page-1})" ${meta.current_page===1?'disabled':''}>‹</button>` +
+                btns.join('') +
+                `<button class="page-btn" onclick="loadTeachers(${meta.current_page+1})" ${meta.current_page===meta.last_page?'disabled':''}>›</button>`;
+        } else {
+            document.getElementById('paginationBar').style.display = 'none';
         }
     } catch(e) { toast('Error: ' + e.message, 'error'); }
 }

@@ -71,8 +71,8 @@ async function loadStudents(page = 1) {
     document.getElementById('studentsBody').innerHTML = '<tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div> Loading…</td></tr>';
     try {
         const res = await api('GET', `/admin/students?page=${page}&search=${encodeURIComponent(search)}`);
-        const data = res.data?.data || [];
-        const meta = res.data?.meta || res.data;
+        const data = res.data || [];
+        const meta = res.meta;
 
         document.getElementById('studentCount').textContent = (meta?.total || '?') + ' students';
         document.getElementById('studentsBody').innerHTML = data.length ? data.map((s, i) => {
@@ -121,12 +121,35 @@ function renderPagination(current, last, from, to, total) {
 
 async function viewStudent(id) {
     openModal('studentModal');
-    document.getElementById('studentModalBody').innerHTML = '<div style="text-align:center"><div class="spinner-sm"></div></div>';
-    try {
-        const res = await api('GET', `/admin/students?search=`);
-        // Fallback: find from current data
-        document.getElementById('studentModalBody').innerHTML = '<p style="color:var(--text-muted);text-align:center">Profile details loaded via students list.</p>';
-    } catch(e) { toast(e.message, 'error'); }
+    const studentsReq = await api('GET', `/admin/students?page=${currentPage}`);
+    const found = (studentsReq.data || []).find(s => s.id === id);
+    if (!found) {
+        document.getElementById('studentModalBody').innerHTML = '<p style="color:var(--text-muted);text-align:center">Student not found.</p>';
+        return;
+    }
+    const trialDate = found.trial_ends_at ? new Date(found.trial_ends_at) : null;
+    const trialActive = trialDate && trialDate > new Date();
+    document.getElementById('studentModalBody').innerHTML = `
+        <div style="width:100%">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+                <div style="width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;font-weight:700;flex-shrink:0">${(found.name||'?')[0].toUpperCase()}</div>
+                <div>
+                    <div style="font-weight:700;font-size:1rem">${found.name || '—'}</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted)">${found.email}</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.85rem">
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">School</span><br>${found.student_profile?.school_name || '—'}</div>
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">District</span><br>${found.student_profile?.district || '—'}</div>
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">Class</span><br>${found.student_profile?.class || '—'}</div>
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">Trial Status</span><br>
+                    ${trialDate ? (trialActive ? '<span class="badge badge-success">✓ Active</span>' : '<span class="badge badge-danger">Expired</span>') : '<span class="badge badge-neutral">Not Started</span>'}
+                </div>
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">Trial Ends</span><br>${trialDate ? trialDate.toLocaleDateString('en-IN') : '—'}</div>
+                <div><span style="color:var(--text-muted);font-size:0.72rem;font-weight:700;text-transform:uppercase">Account Status</span><br><span class="badge ${found.is_active ? 'badge-success' : 'badge-danger'}">${found.is_active ? 'Active' : 'Suspended'}</span></div>
+            </div>
+        </div>
+    `;
 }
 
 async function toggleStudent(id, isActive) {

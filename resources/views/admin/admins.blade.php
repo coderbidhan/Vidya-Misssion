@@ -124,7 +124,17 @@ async function loadAdmins(page = 1) {
         const meta = res.meta;
         if (meta && meta.last_page > 1) {
             document.getElementById('paginationBar').style.display = 'flex';
-            document.getElementById('paginationInfo').textContent = `${meta.from}–${meta.to} of ${meta.total}`;
+            document.getElementById('paginationInfo').textContent = `${meta.from || '?'}–${meta.to || '?'} of ${meta.total}`;
+            const btns = [];
+            for (let p = Math.max(1, meta.current_page - 2); p <= Math.min(meta.last_page, meta.current_page + 2); p++) {
+                btns.push(`<button class="page-btn ${p===meta.current_page?'active':''}" onclick="loadAdmins(${p})">${p}</button>`);
+            }
+            document.getElementById('paginationBtns').innerHTML =
+                `<button class="page-btn" onclick="loadAdmins(${meta.current_page-1})" ${meta.current_page===1?'disabled':''}>‹</button>` +
+                btns.join('') +
+                `<button class="page-btn" onclick="loadAdmins(${meta.current_page+1})" ${meta.current_page===meta.last_page?'disabled':''}>›</button>`;
+        } else {
+            document.getElementById('paginationBar').style.display = 'none';
         }
     } catch(e) { toast('Error: ' + e.message, 'error'); }
 }

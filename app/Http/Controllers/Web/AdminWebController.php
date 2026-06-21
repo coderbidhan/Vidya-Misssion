@@ -13,7 +13,7 @@ class AdminWebController extends Controller
 
     public function __construct()
     {
-        $this->apiBase = config('app.url') . '/api';
+        $this->apiBase = '/api';
     }
 
     /** GET /admin/login */

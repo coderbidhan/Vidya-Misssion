@@ -335,7 +335,7 @@ async function cascadeContent(prefix, step) {
 
 async function loadRecorded(page = 1) {
     const res = await api('GET', `/admin/recorded-classes?page=${page}`);
-    const data = res.data?.data || [];
+    const data = res.data || [];
     document.getElementById('recordedBody').innerHTML = data.length ? data.map(c => `
         <tr>
             <td><div style="font-weight:600">${c.title}</div><div style="font-size:0.75rem;color:var(--text-muted)">${c.description||''}</div></td>
@@ -350,7 +350,7 @@ async function loadRecorded(page = 1) {
 
 async function loadLive(page = 1) {
     const res = await api('GET', `/admin/live-classes?page=${page}`);
-    const data = res.data?.data || [];
+    const data = res.data || [];
     const statusColors = { scheduled:'badge-info', live:'badge-success', completed:'badge-neutral', cancelled:'badge-danger' };
     document.getElementById('liveBody').innerHTML = data.length ? data.map(c => `
         <tr>
@@ -373,7 +373,7 @@ async function loadLive(page = 1) {
 
 async function loadNotes() {
     const res = await api('GET', '/admin/notes');
-    const data = res.data?.data || [];
+    const data = res.data || [];
     document.getElementById('notesBody').innerHTML = data.length ? data.map(n => `
         <tr>
             <td style="font-weight:600">${n.title}</td>
