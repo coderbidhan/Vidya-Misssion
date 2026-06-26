@@ -33,6 +33,38 @@
           }
         },
         {
+          "name": "Student Register",
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 201) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n    \"name\": \"John Doe\",\n    \"district\": \"Paschim Bardhaman\",\n    \"mobile\": \"9876543210\",\n    \"class\": 10,\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"]}
+          }
+        },
+        {
+          "name": "Student Login",
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n    \"mobile\": \"9876543210\",\n    \"password\": \"password\"\n}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"]}
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "body": {"mode": "raw", "raw": "{\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}", "options": {"raw": {"language": "json"}}},
+            "url": {"raw": "{{base_url}}/auth/forgot-password", "host": ["{{base_url}}"], "path": ["auth", "forgot-password"]}
+          }
+        },
+        {
           "name": "Logout",
           "request": {
             "method": "POST",

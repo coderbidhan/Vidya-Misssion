@@ -18,7 +18,7 @@ class SubjectSeeder extends Seeder
             ['name' => 'History',       'color' => '#84CC16', 'icon' => 'book-history',    'sort_order' => 3],
             ['name' => 'Mathematics',   'color' => '#8B5CF6', 'icon' => 'book-math',       'sort_order' => 4],
             ['name' => 'Geography',     'color' => '#F97316', 'icon' => 'book-geography',  'sort_order' => 5],
-            ['name' => 'Physics',       'color' => '#22C55E', 'icon' => 'book-physics',    'sort_order' => 6],
+            ['name' => 'Physical Science', 'color' => '#22C55E', 'icon' => 'book-physics',    'sort_order' => 6],
             ['name' => 'Life Science',  'color' => '#06B6D4', 'icon' => 'book-science',    'sort_order' => 7],
         ];
 
