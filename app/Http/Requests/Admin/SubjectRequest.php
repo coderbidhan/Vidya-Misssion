@@ -14,6 +14,7 @@ class SubjectRequest extends FormRequest
             'name'       => ['required', 'string', 'max:100'],
             'color'      => ['required', 'string', 'max:20'],
             'icon'       => ['required', 'string', 'max:100'],
+            'image'      => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer'],
             'is_active'  => ['nullable', 'boolean'],
         ];

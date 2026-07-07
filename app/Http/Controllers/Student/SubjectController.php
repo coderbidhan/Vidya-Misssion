@@ -34,12 +34,12 @@ class SubjectController extends Controller
             $subjects = Subject::where('is_active', true)
                 ->whereIn('id', $subjectIds)
                 ->orderBy('sort_order')
-                ->get(['id', 'name', 'color', 'icon', 'sort_order']);
+                ->get(['id', 'name', 'color', 'icon', 'image', 'sort_order']);
         } else {
             // No class set yet — return all subjects
             $subjects = Subject::where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['id', 'name', 'color', 'icon', 'sort_order']);
+                ->get(['id', 'name', 'color', 'icon', 'image', 'sort_order']);
         }
 
         return $this->successResponse($subjects);

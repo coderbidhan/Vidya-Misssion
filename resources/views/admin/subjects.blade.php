@@ -177,6 +177,10 @@
                     <input type="number" class="form-control" id="s-sort" value="1" min="1">
                 </div>
             </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" class="form-control" id="s-image" placeholder="e.g. https://images.unsplash.com/photo-...">
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-outline" onclick="closeModal('addSubjectModal')">Cancel</button>
@@ -201,6 +205,10 @@
             <div class="form-row">
                 <div class="form-group"><label class="form-label">Icon</label><input type="text" class="form-control" id="es-icon"></div>
                 <div class="form-group"><label class="form-label">Sort Order</label><input type="number" class="form-control" id="es-sort"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" class="form-control" id="es-image" placeholder="e.g. https://images.unsplash.com/photo-...">
             </div>
         </div>
         <div class="modal-footer">
@@ -444,6 +452,7 @@ async function createSubject() {
             name: document.getElementById('s-name').value,
             color: document.getElementById('s-color').value,
             icon: document.getElementById('s-icon').value || 'book',
+            image: document.getElementById('s-image').value,
             sort_order: parseInt(document.getElementById('s-sort').value),
         });
         toast('Subject created! Now assign it to classes via + Assign.', 'success');
@@ -457,6 +466,7 @@ function editSubject(s) {
     document.getElementById('es-name').value  = s.name;
     document.getElementById('es-color').value = s.color;
     document.getElementById('es-icon').value  = s.icon || '';
+    document.getElementById('es-image').value = s.image || '';
     document.getElementById('es-sort').value  = s.sort_order || 1;
     openModal('editSubjectModal');
 }
@@ -468,6 +478,7 @@ async function updateSubject() {
             name: document.getElementById('es-name').value,
             color: document.getElementById('es-color').value,
             icon: document.getElementById('es-icon').value,
+            image: document.getElementById('es-image').value,
             sort_order: parseInt(document.getElementById('es-sort').value),
         });
         toast('Subject updated!', 'success');

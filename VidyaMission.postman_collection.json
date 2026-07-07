@@ -359,7 +359,7 @@
           "request": {
             "method": "POST",
             "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Chemistry\", \"color\": \"#14B8A6\", \"icon\": \"book-chemistry\", \"sort_order\": 8}", "options": {"raw": {"language": "json"}}},
+            "body": {"mode": "raw", "raw": "{\"name\": \"Chemistry\", \"color\": \"#14B8A6\", \"icon\": \"book-chemistry\", \"image\": \"https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&q=80\", \"sort_order\": 8}", "options": {"raw": {"language": "json"}}},
             "url": {"raw": "{{base_url}}/admin/subjects", "host": ["{{base_url}}"], "path": ["admin", "subjects"]}
           }
         },
@@ -368,7 +368,7 @@
           "request": {
             "method": "PUT",
             "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Bengali Language\", \"color\": \"#EF4444\", \"icon\": \"book-bengali\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
+            "body": {"mode": "raw", "raw": "{\"name\": \"Bengali Language\", \"color\": \"#EF4444\", \"icon\": \"book-bengali\", \"image\": \"https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
             "url": {"raw": "{{base_url}}/admin/subjects/1", "host": ["{{base_url}}"], "path": ["admin", "subjects", "1"]}
           }
         },

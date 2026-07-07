@@ -12,6 +12,7 @@ class Subject extends Model
         'name',
         'color',
         'icon',
+        'image',
         'sort_order',
         'is_active',
     ];
