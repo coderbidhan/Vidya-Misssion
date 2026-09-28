@@ -14,7 +14,8 @@ class StudentLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mobile' => ['required', 'string'],
+            'login' => ['nullable', 'string', 'required_without:mobile'],
+            'mobile' => ['nullable', 'string', 'required_without:login'],
             'password' => ['required', 'string'],
         ];
     }

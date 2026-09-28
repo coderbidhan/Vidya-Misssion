@@ -22,6 +22,7 @@ class AdminWebController extends Controller
         if (session('admin_token')) {
             return redirect()->route('admin.dashboard');
         }
+
         return view('admin.login');
     }
 
@@ -29,7 +30,7 @@ class AdminWebController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
@@ -48,11 +49,11 @@ class AdminWebController extends Controller
 
         session([
             'admin_token' => $token,
-            'admin_user'  => [
-                'id'    => $user->id,
-                'name'  => $user->name,
+            'admin_user' => [
+                'id' => $user->id,
+                'name' => $user->name,
                 'email' => $user->email,
-                'role'  => $user->role,
+                'role' => $user->role,
             ],
         ]);
 
@@ -63,10 +64,11 @@ class AdminWebController extends Controller
     public function logout()
     {
         // Revoke the Sanctum token
-        $user = \App\Models\User::find(session('admin_user.id'));
+        $user = User::find(session('admin_user.id'));
         $user?->tokens()->where('name', 'admin-panel')->delete();
 
         session()->forget(['admin_token', 'admin_user']);
+
         return redirect()->route('admin.login')->with('success', 'You have been logged out.');
     }
 
@@ -75,18 +77,53 @@ class AdminWebController extends Controller
     {
         return view($view, array_merge([
             'adminUser' => session('admin_user'),
-            'token'     => session('admin_token'),
-            'apiBase'   => $this->apiBase,
+            'token' => session('admin_token'),
+            'apiBase' => $this->apiBase,
         ], $extra));
     }
 
-    public function dashboard()     { return $this->adminView('admin.dashboard'); }
-    public function admins()        { return $this->adminView('admin.admins'); }
-    public function students()      { return $this->adminView('admin.students'); }
-    public function teachers()      { return $this->adminView('admin.teachers'); }
-    public function subjects()      { return $this->adminView('admin.subjects'); }
-    public function content()       { return $this->adminView('admin.content'); }
-    public function tests()         { return $this->adminView('admin.tests'); }
-    public function subscriptions() { return $this->adminView('admin.subscriptions'); }
-    public function notifications() { return $this->adminView('admin.notifications'); }
+    public function dashboard()
+    {
+        return $this->adminView('admin.dashboard');
+    }
+
+    public function admins()
+    {
+        return $this->adminView('admin.admins');
+    }
+
+    public function students()
+    {
+        return $this->adminView('admin.students');
+    }
+
+    public function teachers()
+    {
+        return $this->adminView('admin.teachers');
+    }
+
+    public function subjects()
+    {
+        return $this->adminView('admin.subjects');
+    }
+
+    public function content()
+    {
+        return $this->adminView('admin.content');
+    }
+
+    public function tests()
+    {
+        return $this->adminView('admin.tests');
+    }
+
+    public function subscriptions()
+    {
+        return $this->adminView('admin.subscriptions');
+    }
+
+    public function notifications()
+    {
+        return $this->adminView('admin.notifications');
+    }
 }

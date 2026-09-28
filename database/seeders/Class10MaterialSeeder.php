@@ -373,6 +373,11 @@ class Class10MaterialSeeder extends Seeder
                 'subject_id' => $subject->id,
             ]);
 
+            // Assign the teacher to this subject for Class 10
+            $teacher->subjects()->syncWithoutDetaching([
+                $subject->id => ['class_level' => 10],
+            ]);
+
             foreach ($item['chapters'] as $chIdx => $chData) {
                 // Find or create chapter
                 $chapter = Chapter::updateOrCreate(

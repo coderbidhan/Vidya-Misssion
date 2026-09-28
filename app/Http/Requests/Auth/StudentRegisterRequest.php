@@ -23,7 +23,7 @@ class StudentRegisterRequest extends FormRequest
                 'regex:/^[6-9]\d{9}$/',
             ],
             'class' => ['required', 'integer', 'between:1,12'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ];
     }
 

@@ -19,7 +19,7 @@ class Reward extends Model
     {
         return [
             'reward_data' => 'array',
-            'earned_at'   => 'datetime',
+            'earned_at' => 'datetime',
         ];
     }
 

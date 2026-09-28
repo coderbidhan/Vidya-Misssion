@@ -50,7 +50,7 @@ class SubscriptionPlanController extends Controller
     {
         $query = UserSubscription::with(['user:id,name,email', 'subscription:id,name,price'])
             ->when($request->status, fn ($q) => $q->where('payment_status', $request->status))
-            ->when($request->search, fn ($q) => $q->whereHas('user', fn ($uq) => $uq->where('email', 'like', '%' . $request->search . '%')))
+            ->when($request->search, fn ($q) => $q->whereHas('user', fn ($uq) => $uq->where('email', 'like', '%'.$request->search.'%')))
             ->orderByDesc('created_at');
 
         return $this->paginatedResponse($query->paginate(20));

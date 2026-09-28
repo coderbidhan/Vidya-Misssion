@@ -819,8 +819,8 @@ footer { background: var(--text-heading); color: rgba(255,255,255,0.75); padding
                 <ul>
                     <li><a href="#">About Us</a></li>
                     <li><a href="#">Contact</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Use</a></li>
+                    <li><a href="{{ route('privacy-policy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ route('terms-and-conditions') }}">Terms of Use</a></li>
                     <li><a href="{{ route('admin.login') }}">Admin Login</a></li>
                 </ul>
             </div>

@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\ChapterRequest;
 use App\Models\Chapter;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class ChapterController extends Controller
 {
@@ -14,7 +15,14 @@ class ChapterController extends Controller
 
     public function store(ChapterRequest $request): JsonResponse
     {
-        $chapter = Chapter::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('chapters', 'public');
+            $data['image'] = Storage::url($path);
+        }
+
+        $chapter = Chapter::create($data);
 
         return $this->successResponse($chapter, 'Chapter created.', 201);
     }
@@ -22,7 +30,14 @@ class ChapterController extends Controller
     public function update(ChapterRequest $request, int $id): JsonResponse
     {
         $chapter = Chapter::findOrFail($id);
-        $chapter->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('chapters', 'public');
+            $data['image'] = Storage::url($path);
+        }
+
+        $chapter->update($data);
 
         return $this->successResponse($chapter->fresh(), 'Chapter updated.');
     }

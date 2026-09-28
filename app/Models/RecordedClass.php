@@ -22,7 +22,7 @@ class RecordedClass extends Model
     protected function casts(): array
     {
         return [
-            'is_active'        => 'boolean',
+            'is_active' => 'boolean',
             'duration_seconds' => 'integer',
         ];
     }

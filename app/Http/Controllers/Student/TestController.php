@@ -11,7 +11,6 @@ use App\Models\TestAttempt;
 use App\Services\ProgressService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
@@ -50,7 +49,7 @@ class TestController extends Controller
             ->get(['id', 'test_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'marks', 'sort_order']);
 
         return $this->successResponse([
-            'test'      => $test->only(['id', 'title', 'total_marks', 'pass_marks', 'duration_minutes']),
+            'test' => $test->only(['id', 'title', 'total_marks', 'pass_marks', 'duration_minutes']),
             'questions' => $questions,
         ]);
     }
@@ -70,8 +69,19 @@ class TestController extends Controller
             ->get(['id', 'correct_option', 'marks'])
             ->keyBy('id');
 
-        $answers     = $request->answers; // {question_id: "a"|"b"|"c"|"d"}
-        $score       = 0;
+        $rawAnswers = $request->answers;
+        $answers = [];
+        if (is_array($rawAnswers)) {
+            foreach ($rawAnswers as $k => $v) {
+                if (is_array($v) && isset($v['question_id'])) {
+                    $answers[(int) $v['question_id']] = strtolower((string) ($v['selected_option'] ?? ''));
+                } else {
+                    $answers[(int) $k] = strtolower((string) $v);
+                }
+            }
+        }
+
+        $score = 0;
         $correctAnswers = [];
 
         foreach ($answers as $questionId => $selectedOption) {
@@ -80,10 +90,10 @@ class TestController extends Controller
                 continue;
             }
 
-            $isCorrect = $question->correct_option === $selectedOption;
+            $isCorrect = strtolower((string) $question->correct_option) === $selectedOption;
             $correctAnswers[$questionId] = [
                 'selected' => $selectedOption,
-                'correct'  => $question->correct_option,
+                'correct' => strtolower((string) $question->correct_option),
                 'is_correct' => $isCorrect,
             ];
 
@@ -95,13 +105,13 @@ class TestController extends Controller
         $isPassed = $score >= $test->pass_marks;
 
         $attempt = TestAttempt::create([
-            'test_id'      => $test->id,
-            'user_id'      => $user->id,
-            'score'        => $score,
-            'total_marks'  => $test->total_marks,
-            'is_passed'    => $isPassed,
-            'answers'      => $answers,
-            'started_at'   => now(),
+            'test_id' => $test->id,
+            'user_id' => $user->id,
+            'score' => $score,
+            'total_marks' => $test->total_marks,
+            'is_passed' => $isPassed,
+            'answers' => $answers,
+            'started_at' => now(),
             'completed_at' => now(),
         ]);
 
@@ -112,20 +122,20 @@ class TestController extends Controller
             $this->progressService->markChapterComplete($user, $chapter);
             $reward = $this->progressService->awardReward($user, $chapter, 'test_pass', [
                 'test_title' => $test->title,
-                'score'      => $score,
-                'total'      => $test->total_marks,
-                'message'    => 'Congratulations! You passed the test!',
+                'score' => $score,
+                'total' => $test->total_marks,
+                'message' => 'Congratulations! You passed the test!',
             ]);
         }
 
         return $this->successResponse([
-            'attempt_id'      => $attempt->id,
-            'score'           => $score,
-            'total_marks'     => $test->total_marks,
-            'is_passed'       => $isPassed,
-            'pass_marks'      => $test->pass_marks,
+            'attempt_id' => $attempt->id,
+            'score' => $score,
+            'total_marks' => $test->total_marks,
+            'is_passed' => $isPassed,
+            'pass_marks' => $test->pass_marks,
             'correct_answers' => $correctAnswers,
-            'rewards_earned'  => $reward,
+            'rewards_earned' => $reward,
         ], $isPassed ? 'Test passed! Great job!' : 'Test submitted. Keep trying!');
     }
 }

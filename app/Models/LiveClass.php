@@ -23,7 +23,7 @@ class LiveClass extends Model
     protected function casts(): array
     {
         return [
-            'scheduled_at'     => 'datetime',
+            'scheduled_at' => 'datetime',
             'duration_minutes' => 'integer',
         ];
     }

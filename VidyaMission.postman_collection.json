@@ -1,606 +1,1878 @@
 {
-  "info": {
-    "name": "VidyaMission API",
-    "description": "Complete REST API for the VidyaMission student learning platform.\n\nBase URL: {{base_url}}\n\nSet the following environment variables:\n- base_url: http://localhost:8000/api\n- token: (filled automatically after login)\n- student_token, teacher_token, admin_token",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
-  },
-  "variable": [
-    {"key": "base_url", "value": "http://localhost:8000/api", "type": "string"},
-    {"key": "token",    "value": "", "type": "string"}
-  ],
-  "item": [
-    {
-      "name": "Auth",
-      "item": [
-        {
-          "name": "Send OTP",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"email\": \"student@example.com\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/auth/send-otp", "host": ["{{base_url}}"], "path": ["auth", "send-otp"]}
-          }
-        },
-        {
-          "name": "Verify OTP",
-          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"email\": \"student@example.com\", \"otp\": \"123456\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/auth/verify-otp", "host": ["{{base_url}}"], "path": ["auth", "verify-otp"]}
-          }
-        },
-        {
-          "name": "Student Register",
-          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 201) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n    \"name\": \"John Doe\",\n    \"district\": \"Paschim Bardhaman\",\n    \"mobile\": \"9876543210\",\n    \"class\": 10,\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\"\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"]}
-          }
-        },
-        {
-          "name": "Student Login",
-          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) {", "  var data = pm.response.json().data;", "  pm.environment.set('token', data.token);", "}"], "type": "text/javascript"}}],
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\n    \"mobile\": \"9876543210\",\n    \"password\": \"password\"\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"]}
-          }
-        },
-        {
-          "name": "Forgot Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Accept", "value": "application/json"}
-            ],
-            "body": {"mode": "raw", "raw": "{\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/auth/forgot-password", "host": ["{{base_url}}"], "path": ["auth", "forgot-password"]}
-          }
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"]}
-          }
-        }
-      ]
+    "info": {
+        "name": "Vidya Mission API",
+        "_postman_id": "c891e45a-9310-4d40-9a2d-vidyamission01",
+        "description": "Official Postman Collection for **Vidya Mission** — West Bengal Board Online Learning & Examination Platform.\n\n### Environment Variables\n- `base_url`: `http://localhost:8000/api`\n- `token`: Bearer Sanctum Token (set automatically on Login/Register/Verify OTP)\n- `admin_token`: Bearer Sanctum Token for Admin requests\n- `teacher_token`: Bearer Sanctum Token for Teacher requests",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "version": "2.0.0"
     },
-    {
-      "name": "Profile",
-      "item": [
+    "variable": [
         {
-          "name": "Get Profile",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/profile", "host": ["{{base_url}}"], "path": ["profile"]}
-          }
+            "key": "base_url",
+            "value": "http://localhost:8000/api",
+            "type": "string"
         },
         {
-          "name": "Setup Profile",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Arjun Das\", \"class\": \"Class 10\", \"school_name\": \"Kolkata High School\", \"district\": \"Kolkata\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/profile/setup", "host": ["{{base_url}}"], "path": ["profile", "setup"]}
-          }
+            "key": "token",
+            "value": "",
+            "type": "string"
         },
         {
-          "name": "Update Profile",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Arjun Kumar Das\", \"district\": \"Howrah\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/profile/update", "host": ["{{base_url}}"], "path": ["profile", "update"]}
-          }
+            "key": "admin_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "teacher_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "student_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "subject_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "chapter_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "class_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "live_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "note_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "test_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "plan_id",
+            "value": "1",
+            "type": "string"
+        },
+        {
+            "key": "teacher_id",
+            "value": "1",
+            "type": "string"
         }
-      ]
-    },
-    {
-      "name": "Content (Trial Check)",
-      "item": [
+    ],
+    "item": [
         {
-          "name": "Get Subjects",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/subjects", "host": ["{{base_url}}"], "path": ["subjects"]}
-          }
+            "name": "1. Authentication",
+            "item": [
+                {
+                    "name": "Student Register",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201 || pm.response.code === 200) {",
+                                    "  var res = pm.response.json();",
+                                    "  if (res.data && res.data.token) {",
+                                    "    pm.environment.set(\"token\", res.data.token);",
+                                    "    pm.collectionVariables.set(\"token\", res.data.token);",
+                                    "  }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Sourav Ganguly\",\n    \"mobile\": \"9830012345\",\n    \"email\": \"sourav@vidyamission.in\",\n    \"password\": \"secret123\",\n    \"class\": \"9\",\n    \"school_name\": \"Hare School\",\n    \"district\": \"Kolkata\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Student Login (Single Device Enforcement)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "  var res = pm.response.json();",
+                                    "  if (res.data && res.data.token) {",
+                                    "    pm.environment.set(\"token\", res.data.token);",
+                                    "    pm.collectionVariables.set(\"token\", res.data.token);",
+                                    "  }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mobile\": \"9830012345\",\n    \"password\": \"secret123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Send OTP (Mobile / Email)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mobile\": \"9830012345\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/send-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "send-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify OTP",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "  var res = pm.response.json();",
+                                    "  if (res.data && res.data.token) {",
+                                    "    pm.environment.set(\"token\", res.data.token);",
+                                    "    pm.collectionVariables.set(\"token\", res.data.token);",
+                                    "  }",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mobile\": \"9830012345\",\n    \"otp\": \"123456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify-otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify-otp"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Forgot Password (Reset)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"mobile\": \"9830012345\",\n    \"password\": \"newSecret123\",\n    \"password_confirmation\": \"newSecret123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Chapters for Subject",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/subjects/1/chapters", "host": ["{{base_url}}"], "path": ["subjects", "1", "chapters"]}
-          }
+            "name": "2. Student Profile & Dashboard",
+            "item": [
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Setup Profile (First Time)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Sourav Ganguly\",\n    \"class\": \"9\",\n    \"school_name\": \"Hare School\",\n    \"district\": \"Kolkata\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/profile/setup",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "setup"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Sourav Ganguly\",\n    \"class\": \"9\",\n    \"school_name\": \"Hare School\",\n    \"district\": \"Kolkata\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/profile/update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "update"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Upload Avatar Photo",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "avatar",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/profile/avatar",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile",
+                                "avatar"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Student Dashboard Summary",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/student/dashboard",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "student",
+                                "dashboard"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Student Exam Reports",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/student/exam-reports",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "student",
+                                "exam-reports"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Student Learning History",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/student/history",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "student",
+                                "history"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Account (Purge Data)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "profile"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Chapter Detail",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1", "host": ["{{base_url}}"], "path": ["chapters", "1"]}
-          }
+            "name": "3. Curriculum & Subjects",
+            "item": [
+                {
+                    "name": "Get Subjects (Dual Bengali/English)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subjects?class_level=9",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subjects"
+                            ],
+                            "query": [
+                                {
+                                    "key": "class_level",
+                                    "value": "9",
+                                    "description": "Optional class exploration during 3-day trial"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Subject Chapters",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subjects/{{subject_id}}/chapters",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subjects",
+                                "{{subject_id}}",
+                                "chapters"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Chapter Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Complete Chapter (Reward)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}/complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}",
+                                "complete"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Mark Chapter Complete",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1/complete", "host": ["{{base_url}}"], "path": ["chapters", "1", "complete"]}
-          }
+            "name": "4. Recorded Video Classes",
+            "item": [
+                {
+                    "name": "Get Recorded Classes by Chapter",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}/recorded-classes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}",
+                                "recorded-classes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Video Embed Player URL",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/recorded-classes/{{class_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "recorded-classes",
+                                "{{class_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Record Video Watch Complete (+10 Points Reward)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/recorded-classes/{{class_id}}/complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "recorded-classes",
+                                "{{class_id}}",
+                                "complete"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Recorded Classes",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1/recorded-classes", "host": ["{{base_url}}"], "path": ["chapters", "1", "recorded-classes"]}
-          }
+            "name": "5. Live Classes",
+            "item": [
+                {
+                    "name": "Get Live Classes by Chapter",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}/live-classes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}",
+                                "live-classes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Attend Live Session (+15 Points Reward)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/live-classes/{{live_id}}/attend",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "live-classes",
+                                "{{live_id}}",
+                                "attend"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Recorded Class Detail",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/recorded-classes/1", "host": ["{{base_url}}"], "path": ["recorded-classes", "1"]}
-          }
+            "name": "6. Study Notes & Materials",
+            "item": [
+                {
+                    "name": "Get Notes by Chapter",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}/notes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}",
+                                "notes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single Note Document URL",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notes/{{note_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notes",
+                                "{{note_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Live Classes",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1/live-classes", "host": ["{{base_url}}"], "path": ["chapters", "1", "live-classes"]}
-          }
+            "name": "7. Tests & Examinations",
+            "item": [
+                {
+                    "name": "Get Tests by Chapter",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/chapters/{{chapter_id}}/tests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "chapters",
+                                "{{chapter_id}}",
+                                "tests"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Test Questions Paper",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/tests/{{test_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "tests",
+                                "{{test_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Submit Test Attempt & Get Score Report",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"time_taken_seconds\": 300,\n    \"answers\": {\n        \"1\": \"B\",\n        \"2\": \"A\"\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/tests/{{test_id}}/attempt",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "tests",
+                                "{{test_id}}",
+                                "attempt"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Notes",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1/notes", "host": ["{{base_url}}"], "path": ["chapters", "1", "notes"]}
-          }
+            "name": "8. Subscriptions & Payments",
+            "item": [
+                {
+                    "name": "List Subscription Pricing Plans (Public)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscriptions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscriptions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Current Student Subscription",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscriptions/current",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscriptions",
+                                "current"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Student Subscription Payment Receipts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscriptions/history",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscriptions",
+                                "history"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Initiate Subscription Payment Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/subscriptions/{{plan_id}}/initiate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "subscriptions",
+                                "{{plan_id}}",
+                                "initiate"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Note Detail",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/notes/1", "host": ["{{base_url}}"], "path": ["notes", "1"]}
-          }
+            "name": "9. Schools & Districts Directory",
+            "item": [
+                {
+                    "name": "Search West Bengal Schools",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/schools?q=School&district=Kolkata",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "schools"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "School"
+                                },
+                                {
+                                    "key": "district",
+                                    "value": "Kolkata"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All 23 West Bengal Districts",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/schools/districts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "schools",
+                                "districts"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get App Share Referral Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/app/share-info",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "app",
+                                "share-info"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Privacy Policy",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/privacy-policy",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "privacy-policy"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Terms and Conditions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/terms-and-conditions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "terms-and-conditions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/notifications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Tests",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/chapters/1/tests", "host": ["{{base_url}}"], "path": ["chapters", "1", "tests"]}
-          }
+            "name": "10. Teacher Portal",
+            "item": [
+                {
+                    "name": "Teacher Dashboard",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{teacher_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/teacher/dashboard",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teacher",
+                                "dashboard"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Teacher Assigned Subjects",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{teacher_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/teacher/subjects",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teacher",
+                                "subjects"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "Get Test (Shuffled Questions)",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/tests/1", "host": ["{{base_url}}"], "path": ["tests", "1"]}
-          }
-        },
-        {
-          "name": "Submit Test Attempt",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"answers\": {\"1\": \"a\", \"2\": \"b\", \"3\": \"c\"}}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/tests/1/attempt", "host": ["{{base_url}}"], "path": ["tests", "1", "attempt"]}
-          }
+            "name": "11. Admin Management Portal",
+            "item": [
+                {
+                    "name": "Students - List Students",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/students?page=1&search=",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "students"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Students - Grant Free Subscription Pass (Req 7)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"days\": 30,\n    \"subscription_id\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/students/{{student_id}}/grant-subscription",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "students",
+                                "{{student_id}}",
+                                "grant-subscription"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Teachers - List Teachers",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/teachers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "teachers"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Teachers - Create Teacher with Photo",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Dr. Subhash Chandra",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "email",
+                                    "value": "subhash@school.com",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mobile",
+                                    "value": "9830099999",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password",
+                                    "value": "teacher123",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "qualification",
+                                    "value": "M.Sc Physics, B.Ed",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "bio",
+                                    "value": "Senior Physics faculty with 12+ years experience",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "avatar",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/teachers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "teachers"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Teachers - Assign Class & Subjects",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"assignments\": [\n        {\n            \"class_level\": 9,\n            \"subject_id\": 1\n        },\n        {\n            \"class_level\": 10,\n            \"subject_id\": 1\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/teachers/{{teacher_id}}/assign-subjects",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "teachers",
+                                "{{teacher_id}}",
+                                "assign-subjects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Curriculum - List Subjects",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/subjects",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "subjects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Curriculum - Create Subject (Dual Name)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"জীবন বিজ্ঞান (Life Science)\",\n    \"color\": \"#10B981\",\n    \"icon\": \"leaf\",\n    \"sort_order\": 5\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/subjects",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "subjects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Curriculum - Class Subject Mappings",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/class-subjects/all",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "class-subjects",
+                                "all"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Curriculum - Create Chapter with Theme",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"subject_id\": 1,\n    \"class_level\": 9,\n    \"title\": \"Chapter 1 — বল ও গতি\",\n    \"color\": \"#5B45FF\",\n    \"theme\": \"Purple Modern\",\n    \"image\": \"https:\\/\\/images.unsplash.com\\/photo-1532094349884-543bc11b234d\",\n    \"sort_order\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/chapters",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "chapters"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Content - Add Recorded Video Class",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"chapter_id\": 1,\n    \"teacher_id\": 2,\n    \"title\": \"Newton Laws of Motion Detailed Lecture\",\n    \"gdrive_file_id\": \"1a2b3c4d5e6f7g8h9i0j\",\n    \"duration_seconds\": 1800,\n    \"description\": \"Complete chapter 1 video explanation with numerical solutions.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/recorded-classes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "recorded-classes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Content - Schedule Live Class",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"chapter_id\": 1,\n    \"teacher_id\": 2,\n    \"title\": \"Madhyamik Physics Live Doubt Solving\",\n    \"platform\": \"google_meet\",\n    \"meeting_url\": \"https:\\/\\/meet.google.com\\/abc-defg-hij\",\n    \"scheduled_at\": \"2026-08-25 18:00:00\",\n    \"duration_minutes\": 60\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/live-classes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "live-classes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Content - Add Study Note",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"chapter_id\": 1,\n    \"teacher_id\": 2,\n    \"title\": \"Formula Sheet & Important Questions PDF\",\n    \"file_type\": \"pdf\",\n    \"file_url\": \"https:\\/\\/drive.google.com\\/file\\/d\\/sample-pdf\",\n    \"description\": \"Comprehensive revision notes for final exams.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/notes",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "notes"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tests - Create Assessment Exam",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"chapter_id\": 1,\n    \"title\": \"Chapter 1 Mock Assessment\",\n    \"duration_minutes\": 30,\n    \"pass_marks\": 12,\n    \"reward_points\": 20\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/tests",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "tests"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tests - Bulk Upload Questions",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"questions\": [\n        {\n            \"question_text\": \"What is the SI unit of force?\",\n            \"option_a\": \"Joule\",\n            \"option_b\": \"Newton\",\n            \"option_c\": \"Watt\",\n            \"option_d\": \"Pascal\",\n            \"correct_option\": \"B\",\n            \"marks\": 1,\n            \"explanation\": \"Newton (N) is the SI unit of force equal to 1 kg\\u00b7m\\/s\\u00b2.\"\n        }\n    ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/tests/{{test_id}}/questions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "tests",
+                                "{{test_id}}",
+                                "questions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Subscriptions - Create Subscription Plan",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Annual Madhyamik Master Pass\",\n    \"price\": 999,\n    \"duration_days\": 365,\n    \"description\": \"Unlimited access to all subjects, live doubt classes, and test series for 1 year.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/subscription-plans",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "subscription-plans"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Subscriptions - Subscriber Payment Logs",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/user-subscriptions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "user-subscriptions"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Analytics - Overview Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/admin/analytics/overview",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "analytics",
+                                "overview"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Notifications - Broadcast to Students",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Live Revision Class Today at 7 PM!\",\n    \"message\": \"Join our special Madhyamik problem solving live session.\",\n    \"target_type\": \"all\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/admin/notifications/broadcast",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "notifications",
+                                "broadcast"
+                            ]
+                        }
+                    }
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "Subscriptions",
-      "item": [
-        {
-          "name": "List Plans",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/subscriptions", "host": ["{{base_url}}"], "path": ["subscriptions"]}
-          }
-        },
-        {
-          "name": "Current Subscription",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/subscriptions/current", "host": ["{{base_url}}"], "path": ["subscriptions", "current"]}
-          }
-        },
-        {
-          "name": "Initiate Payment",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/subscriptions/1/initiate", "host": ["{{base_url}}"], "path": ["subscriptions", "1", "initiate"]}
-          }
-        },
-        {
-          "name": "Payment Webhook (Razorpay)",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Accept", "value": "application/json"}, {"key": "X-Razorpay-Signature", "value": "{{webhook_signature}}"}, {"key": "X-Payment-Gateway", "value": "razorpay"}],
-            "body": {"mode": "raw", "raw": "{\"event\": \"payment.captured\", \"payload\": {\"payment\": {\"entity\": {\"id\": \"pay_test123\", \"order_id\": \"order_test456\"}}}}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/subscriptions/webhook", "host": ["{{base_url}}"], "path": ["subscriptions", "webhook"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Notifications",
-      "item": [
-        {
-          "name": "List Notifications",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"]}
-          }
-        },
-        {
-          "name": "Mark Notification Read",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/notifications/1/read", "host": ["{{base_url}}"], "path": ["notifications", "1", "read"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Teacher",
-      "item": [
-        {
-          "name": "Teacher Dashboard",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{teacher_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/teacher/dashboard", "host": ["{{base_url}}"], "path": ["teacher", "dashboard"]}
-          }
-        },
-        {
-          "name": "Teacher Subjects",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{teacher_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/teacher/subjects", "host": ["{{base_url}}"], "path": ["teacher", "subjects"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Users",
-      "item": [
-        {
-          "name": "List Students",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/students?search=arjun&page=1", "host": ["{{base_url}}"], "path": ["admin", "students"], "query": [{"key": "search", "value": "arjun"}, {"key": "page", "value": "1"}]}
-          }
-        },
-        {
-          "name": "List Teachers",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/teachers", "host": ["{{base_url}}"], "path": ["admin", "teachers"]}
-          }
-        },
-        {
-          "name": "Create Teacher",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Rina Ghosh\", \"email\": \"rina@school.com\", \"bio\": \"10 years teaching experience\", \"qualification\": \"M.Sc Physics\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/teachers", "host": ["{{base_url}}"], "path": ["admin", "teachers"]}
-          }
-        },
-        {
-          "name": "Update Teacher",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Rina Ghosh Updated\", \"is_active\": true}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/teachers/1", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1"]}
-          }
-        },
-        {
-          "name": "Deactivate Teacher",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/teachers/1", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1"]}
-          }
-        },
-        {
-          "name": "Assign Subjects to Teacher",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"subject_ids\": [1, 4, 6]}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/teachers/1/assign-subjects", "host": ["{{base_url}}"], "path": ["admin", "teachers", "1", "assign-subjects"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Subjects & Chapters",
-      "item": [
-        {
-          "name": "List Subjects",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/subjects", "host": ["{{base_url}}"], "path": ["admin", "subjects"]}
-          }
-        },
-        {
-          "name": "Create Subject",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Chemistry\", \"color\": \"#14B8A6\", \"icon\": \"book-chemistry\", \"image\": \"https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=400&q=80\", \"sort_order\": 8}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/subjects", "host": ["{{base_url}}"], "path": ["admin", "subjects"]}
-          }
-        },
-        {
-          "name": "Update Subject",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Bengali Language\", \"color\": \"#EF4444\", \"icon\": \"book-bengali\", \"image\": \"https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/subjects/1", "host": ["{{base_url}}"], "path": ["admin", "subjects", "1"]}
-          }
-        },
-        {
-          "name": "Delete Subject",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/subjects/8", "host": ["{{base_url}}"], "path": ["admin", "subjects", "8"]}
-          }
-        },
-        {
-          "name": "Get Subject Chapters",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/subjects/1/chapters", "host": ["{{base_url}}"], "path": ["admin", "subjects", "1", "chapters"]}
-          }
-        },
-        {
-          "name": "Create Chapter",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"subject_id\": 1, \"title\": \"Chapter 1: The Letter\", \"sort_order\": 1}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/chapters", "host": ["{{base_url}}"], "path": ["admin", "chapters"]}
-          }
-        },
-        {
-          "name": "Update Chapter",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"subject_id\": 1, \"title\": \"Chapter 1: Introduction\", \"sort_order\": 1, \"is_active\": true}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/chapters/1", "host": ["{{base_url}}"], "path": ["admin", "chapters", "1"]}
-          }
-        },
-        {
-          "name": "Delete Chapter",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/chapters/1", "host": ["{{base_url}}"], "path": ["admin", "chapters", "1"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Recorded Classes",
-      "item": [
-        {
-          "name": "List Recorded Classes",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/recorded-classes", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes"]}
-          }
-        },
-        {
-          "name": "Create Recorded Class",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Introduction to Bengali Alphabet\", \"description\": \"Learn the basics\", \"gdrive_file_id\": \"1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms\", \"duration_seconds\": 1800}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/recorded-classes", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes"]}
-          }
-        },
-        {
-          "name": "Update Recorded Class",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Bengali Alphabet — Updated\", \"gdrive_file_id\": \"new_file_id_here\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/recorded-classes/1", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes", "1"]}
-          }
-        },
-        {
-          "name": "Delete Recorded Class",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/recorded-classes/1", "host": ["{{base_url}}"], "path": ["admin", "recorded-classes", "1"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Live Classes",
-      "item": [
-        {
-          "name": "List Live Classes",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/live-classes", "host": ["{{base_url}}"], "path": ["admin", "live-classes"]}
-          }
-        },
-        {
-          "name": "Create Live Class",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"teacher_id\": 2, \"title\": \"Live Q&A Session\", \"platform\": \"google_meet\", \"meeting_url\": \"https://meet.google.com/abc-defg-hij\", \"scheduled_at\": \"2026-06-01 10:00:00\", \"duration_minutes\": 60}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/live-classes", "host": ["{{base_url}}"], "path": ["admin", "live-classes"]}
-          }
-        },
-        {
-          "name": "Update Live Class Status",
-          "request": {
-            "method": "PATCH",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"status\": \"live\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/live-classes/1/status", "host": ["{{base_url}}"], "path": ["admin", "live-classes", "1", "status"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Tests & Questions",
-      "item": [
-        {
-          "name": "List Tests",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/tests", "host": ["{{base_url}}"], "path": ["admin", "tests"]}
-          }
-        },
-        {
-          "name": "Create Test",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"chapter_id\": 1, \"title\": \"Bengali Chapter 1 Test\", \"total_marks\": 20, \"pass_marks\": 10, \"duration_minutes\": 20}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/tests", "host": ["{{base_url}}"], "path": ["admin", "tests"]}
-          }
-        },
-        {
-          "name": "Bulk Add Questions",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"questions\": [{\"question_text\": \"বাংলা বর্ণমালায় কয়টি স্বরবর্ণ আছে?\", \"option_a\": \"১০\", \"option_b\": \"১১\", \"option_c\": \"১২\", \"option_d\": \"১৩\", \"correct_option\": \"b\", \"marks\": 2}, {\"question_text\": \"বাংলা বর্ণমালায় কয়টি ব্যঞ্জনবর্ণ আছে?\", \"option_a\": \"৩৫\", \"option_b\": \"৩৯\", \"option_c\": \"৪০\", \"option_d\": \"৪৫\", \"correct_option\": \"b\", \"marks\": 2}]}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/tests/1/questions", "host": ["{{base_url}}"], "path": ["admin", "tests", "1", "questions"]}
-          }
-        },
-        {
-          "name": "Update Question",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"question_text\": \"Updated question?\", \"option_a\": \"A\", \"option_b\": \"B\", \"option_c\": \"C\", \"option_d\": \"D\", \"correct_option\": \"a\", \"marks\": 1}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/questions/1", "host": ["{{base_url}}"], "path": ["admin", "questions", "1"]}
-          }
-        },
-        {
-          "name": "Delete Question",
-          "request": {
-            "method": "DELETE",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/questions/1", "host": ["{{base_url}}"], "path": ["admin", "questions", "1"]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Subscriptions",
-      "item": [
-        {
-          "name": "List Plans",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/subscription-plans", "host": ["{{base_url}}"], "path": ["admin", "subscription-plans"]}
-          }
-        },
-        {
-          "name": "Create Plan",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"name\": \"Bi-Annual\", \"description\": \"6 months plan\", \"price\": 899, \"duration_days\": 180, \"features\": [\"All subjects\", \"Priority support\"]}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/subscription-plans", "host": ["{{base_url}}"], "path": ["admin", "subscription-plans"]}
-          }
-        },
-        {
-          "name": "User Subscriptions",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/user-subscriptions?status=completed", "host": ["{{base_url}}"], "path": ["admin", "user-subscriptions"], "query": [{"key": "status", "value": "completed"}]}
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin — Analytics",
-      "item": [
-        {
-          "name": "Overview",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/analytics/overview", "host": ["{{base_url}}"], "path": ["admin", "analytics", "overview"]}
-          }
-        },
-        {
-          "name": "Popular Subjects",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/analytics/popular-subjects", "host": ["{{base_url}}"], "path": ["admin", "analytics", "popular-subjects"]}
-          }
-        },
-        {
-          "name": "Test Performance",
-          "request": {
-            "method": "GET",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "url": {"raw": "{{base_url}}/admin/analytics/test-performance", "host": ["{{base_url}}"], "path": ["admin", "analytics", "test-performance"]}
-          }
-        },
-        {
-          "name": "Broadcast Notification",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Authorization", "value": "Bearer {{admin_token}}"}, {"key": "Accept", "value": "application/json"}],
-            "body": {"mode": "raw", "raw": "{\"title\": \"New Live Class Tomorrow!\", \"body\": \"Join us for a live Q&A session on Mathematics tomorrow at 10 AM.\", \"user_ids\": \"all\"}", "options": {"raw": {"language": "json"}}},
-            "url": {"raw": "{{base_url}}/admin/notifications/broadcast", "host": ["{{base_url}}"], "path": ["admin", "notifications", "broadcast"]}
-          }
-        }
-      ]
-    }
-  ]
+    ]
 }

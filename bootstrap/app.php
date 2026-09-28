@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdminWebAuth;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\CheckTrialOrSubscription;
 use Illuminate\Foundation\Application;
@@ -14,14 +15,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Redirect unauthenticated guest requests to admin login
+        $middleware->redirectTo(
+            guests: '/admin/login',
+            users: '/admin/dashboard'
+        );
+
         // Sanctum stateful domains (for SPA / cookie-based auth)
         $middleware->statefulApi();
 
         // Register custom middleware aliases
         $middleware->alias([
             'trial_check' => CheckTrialOrSubscription::class,
-            'role'        => CheckRole::class,
-            'admin_auth'  => \App\Http\Middleware\AdminWebAuth::class,
+            'role' => CheckRole::class,
+            'admin_auth' => AdminWebAuth::class,
         ]);
 
         // Exclude API routes from CSRF since we use Bearer tokens for API auth
@@ -32,4 +39,3 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-

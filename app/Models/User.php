@@ -42,11 +42,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'otp_expires_at'   => 'datetime',
-            'is_verified'      => 'boolean',
-            'is_active'        => 'boolean',
-            'trial_starts_at'  => 'datetime',
-            'trial_ends_at'    => 'datetime',
+            'otp_expires_at' => 'datetime',
+            'is_verified' => 'boolean',
+            'is_active' => 'boolean',
+            'trial_starts_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 
@@ -116,8 +116,8 @@ class User extends Authenticatable
     public function subjects(): BelongsToMany
     {
         return $this->belongsToMany(Subject::class, 'teacher_subjects', 'teacher_id', 'subject_id')
-                    ->withPivot('class_level')
-                    ->withTimestamps();
+            ->withPivot('class_level')
+            ->withTimestamps();
     }
 
     // -------------------------------------------------
@@ -146,5 +146,61 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->role === 'student';
+    }
+
+    /**
+     * Check if the user has an active subscription for the current validity period.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->userSubscriptions()
+            ->where('payment_status', 'completed')
+            ->where(function ($query) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->where('ends_at', '>=', now())
+            ->exists();
+    }
+
+    /**
+     * Get the active subscription record for the user.
+     */
+    public function activeSubscription(): ?UserSubscription
+    {
+        return $this->userSubscriptions()
+            ->with('subscription')
+            ->where('payment_status', 'completed')
+            ->where(function ($query) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->where('ends_at', '>=', now())
+            ->orderByDesc('ends_at')
+            ->first();
+    }
+
+    /**
+     * Check if the user is currently within their active free trial window.
+     */
+    public function isInTrial(): bool
+    {
+        return $this->trial_starts_at !== null
+            && $this->trial_ends_at !== null
+            && now()->lessThanOrEqualTo($this->trial_ends_at);
+    }
+
+    /**
+     * Check if the user has full access to content (Admin, Teacher, Active Subscription, or Trial).
+     */
+    public function hasContentAccess(): bool
+    {
+        if ($this->isAdmin() || $this->isTeacher()) {
+            return true;
+        }
+
+        if ($this->hasActiveSubscription()) {
+            return true;
+        }
+
+        return $this->isInTrial();
     }
 }

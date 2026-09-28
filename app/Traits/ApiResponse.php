@@ -10,9 +10,7 @@ trait ApiResponse
     /**
      * Return a standardized success JSON response.
      *
-     * @param  mixed   $data
-     * @param  string  $message
-     * @param  int     $status  HTTP status code
+     * @param  int  $status  HTTP status code
      */
     protected function successResponse(mixed $data = null, string $message = 'Success', int $status = 200): JsonResponse
     {
@@ -31,10 +29,9 @@ trait ApiResponse
     /**
      * Return a standardized error JSON response.
      *
-     * @param  string       $message
-     * @param  int          $status   HTTP status code
-     * @param  string|null  $code     Machine-readable error code
-     * @param  array        $errors   Validation errors (optional)
+     * @param  int  $status  HTTP status code
+     * @param  string|null  $code  Machine-readable error code
+     * @param  array  $errors  Validation errors (optional)
      */
     protected function errorResponse(
         string $message,
@@ -60,21 +57,18 @@ trait ApiResponse
 
     /**
      * Return a paginated JSON response with meta information.
-     *
-     * @param  LengthAwarePaginator  $paginator
-     * @param  string                $message
      */
     protected function paginatedResponse(LengthAwarePaginator $paginator, string $message = 'Success'): JsonResponse
     {
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data'    => $paginator->items(),
-            'meta'    => [
+            'data' => $paginator->items(),
+            'meta' => [
                 'current_page' => $paginator->currentPage(),
-                'total'        => $paginator->total(),
-                'per_page'     => $paginator->perPage(),
-                'last_page'    => $paginator->lastPage(),
+                'total' => $paginator->total(),
+                'per_page' => $paginator->perPage(),
+                'last_page' => $paginator->lastPage(),
             ],
         ]);
     }

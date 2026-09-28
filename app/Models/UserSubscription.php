@@ -21,7 +21,7 @@ class UserSubscription extends Model
     {
         return [
             'starts_at' => 'datetime',
-            'ends_at'   => 'datetime',
+            'ends_at' => 'datetime',
         ];
     }
 
@@ -47,8 +47,20 @@ class UserSubscription extends Model
     public function isActive(): bool
     {
         return $this->payment_status === 'completed'
-            && $this->starts_at !== null
+            && ($this->starts_at === null || $this->starts_at->lessThanOrEqualTo(now()))
             && $this->ends_at !== null
-            && now()->between($this->starts_at, $this->ends_at);
+            && $this->ends_at->greaterThanOrEqualTo(now());
+    }
+
+    /**
+     * Get remaining days in the subscription period.
+     */
+    public function daysRemaining(): int
+    {
+        if (! $this->isActive() || ! $this->ends_at) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInDays($this->ends_at, false));
     }
 }

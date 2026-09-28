@@ -20,9 +20,9 @@ class Test extends Model
     protected function casts(): array
     {
         return [
-            'is_active'        => 'boolean',
-            'total_marks'      => 'integer',
-            'pass_marks'       => 'integer',
+            'is_active' => 'boolean',
+            'total_marks' => 'integer',
+            'pass_marks' => 'integer',
             'duration_minutes' => 'integer',
         ];
     }

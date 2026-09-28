@@ -26,8 +26,9 @@ class OtpService
      */
     public function sendOtp(User $user): void
     {
-        $rateLimitKey = 'otp_rate_limit:' . $user->email;
-        $limit        = config('vidyamission.otp_rate_limit', 3);
+        $identifier = $user->mobile ?: ($user->email ?: (string) $user->id);
+        $rateLimitKey = 'otp_rate_limit:'.$identifier;
+        $limit = config('vidyamission.otp_rate_limit', 5);
 
         // Increment rate limit counter
         $attempts = Cache::get($rateLimitKey, 0);
@@ -43,12 +44,14 @@ class OtpService
         $expiryMinutes = config('vidyamission.otp_expiry_minutes', 10);
 
         $user->update([
-            'otp'            => Hash::make($otp),
+            'otp' => Hash::make($otp),
             'otp_expires_at' => now()->addMinutes($expiryMinutes),
         ]);
 
-        // Dispatch email job with the plain OTP (before hashing)
-        SendOtpEmail::dispatch($user, $otp);
+        // Dispatch email job only if user has an email address
+        if ($user->email) {
+            SendOtpEmail::dispatch($user, $otp);
+        }
     }
 
     /**

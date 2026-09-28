@@ -44,7 +44,7 @@ class SubjectController extends Controller
      */
     public function chapters(int $subjectId): JsonResponse
     {
-        $subject  = Subject::findOrFail($subjectId);
+        $subject = Subject::findOrFail($subjectId);
         $chapters = $subject->chapters()->orderBy('sort_order')->get();
 
         return $this->successResponse($chapters);

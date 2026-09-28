@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\TestController as AdminTestController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\StudentAuthController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Student\ChapterController;
 use App\Http\Controllers\Student\LiveClassController;
 use App\Http\Controllers\Student\NoteController;
@@ -36,9 +37,35 @@ Route::prefix('auth')->group(function () {
     Route::post('verify-otp', [OtpController::class, 'verifyOtp'])->name('auth.verify-otp');
     Route::post('register', [StudentAuthController::class, 'register'])->name('auth.register');
     Route::post('login', [StudentAuthController::class, 'login'])->name('auth.login');
-    Route::post('forgot-password', [StudentAuthController::class, 'forgotPassword'])->middleware('auth:sanctum')->name('auth.forgot-password');
+    Route::post('forgot-password', [StudentAuthController::class, 'forgotPassword'])->name('auth.forgot-password');
     Route::post('logout', [OtpController::class, 'logout'])->middleware('auth:sanctum')->name('auth.logout');
 });
+
+use App\Http\Controllers\Student\SchoolController;
+
+/*
+|--------------------------------------------------------------------------
+| Public Pages & General Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('privacy-policy', [LegalController::class, 'privacyPolicy'])->name('api.privacy-policy');
+Route::get('terms-and-conditions', [LegalController::class, 'termsAndConditions'])->name('api.terms-and-conditions');
+Route::get('schools/districts', [SchoolController::class, 'districts'])->name('api.schools.districts');
+Route::get('schools', [SchoolController::class, 'index'])->name('api.schools');
+Route::get('subscriptions', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
+
+Route::get('app/share-info', function () {
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'app_name' => 'Vidya Mission',
+            'share_title' => 'Learn with Vidya Mission App',
+            'share_text' => 'Download Vidya Mission app now for West Bengal Board online classes, live sessions, notes, and exams! Download here: https://vidyamission.in/download',
+            'app_url' => 'https://vidyamission.in/download',
+            'playstore' => 'https://play.google.com/store/apps/details?id=in.vidyamission.app',
+        ],
+    ]);
+})->name('api.app.share-info');
 
 /*
 |--------------------------------------------------------------------------
@@ -56,13 +83,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Profile Routes (auth required, no trial check)
+    | Profile & Student Dashboard Routes (auth required, no trial check)
     |----------------------------------------------------------------------
     */
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
         Route::post('/setup', [ProfileController::class, 'setup'])->name('profile.setup');
         Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
+
+    Route::prefix('student')->group(function () {
+        Route::get('dashboard', [ProfileController::class, 'dashboard'])->name('student.dashboard');
+        Route::get('exam-reports', [ProfileController::class, 'examReports'])->name('student.exam-reports');
+        Route::get('history', [ProfileController::class, 'history'])->name('student.history');
     });
 
     /*
@@ -71,8 +106,8 @@ Route::middleware('auth:sanctum')->group(function () {
     |----------------------------------------------------------------------
     */
     Route::prefix('subscriptions')->group(function () {
-        Route::get('/', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
         Route::get('/current', [SubscriptionController::class, 'current'])->name('subscriptions.current');
+        Route::get('/history', [SubscriptionController::class, 'history'])->name('subscriptions.history');
         Route::post('/{id}/initiate', [SubscriptionController::class, 'initiate'])->name('subscriptions.initiate');
     });
 
@@ -88,31 +123,38 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Content Routes (auth + trial/subscription check)
+    | Curriculum Browsing Routes (auth required — accessible even if trial expired)
+    |----------------------------------------------------------------------
+    */
+    // Subjects & Chapters List
+    Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::get('subjects/{id}/chapters', [ChapterController::class, 'bySubject'])->name('subjects.chapters');
+    Route::get('chapters/{id}', [ChapterController::class, 'show'])->name('chapters.show');
+
+    /*
+    |----------------------------------------------------------------------
+    | Premium Content Routes (auth + active 3-day trial OR active subscription check)
     |----------------------------------------------------------------------
     */
     Route::middleware('trial_check')->group(function () {
 
-        // Subjects
-        Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
-        Route::get('subjects/{id}/chapters', [ChapterController::class, 'bySubject'])->name('subjects.chapters');
-
-        // Chapters
-        Route::get('chapters/{id}', [ChapterController::class, 'show'])->name('chapters.show');
+        // Chapter completion
         Route::post('chapters/{id}/complete', [ChapterController::class, 'complete'])->name('chapters.complete');
 
-        // Recorded Classes
+        // Recorded Video Classes
         Route::get('chapters/{id}/recorded-classes', [RecordedClassController::class, 'byChapter'])->name('recorded-classes.by-chapter');
         Route::get('recorded-classes/{id}', [RecordedClassController::class, 'show'])->name('recorded-classes.show');
+        Route::post('recorded-classes/{id}/complete', [RecordedClassController::class, 'complete'])->name('recorded-classes.complete');
 
-        // Live Classes
+        // Live Classes & Sessions
         Route::get('chapters/{id}/live-classes', [LiveClassController::class, 'byChapter'])->name('live-classes.by-chapter');
+        Route::post('live-classes/{id}/attend', [LiveClassController::class, 'attend'])->name('live-classes.attend');
 
-        // Notes
+        // Study Notes & PDFs
         Route::get('chapters/{id}/notes', [NoteController::class, 'byChapter'])->name('notes.by-chapter');
         Route::get('notes/{id}', [NoteController::class, 'show'])->name('notes.show');
 
-        // Tests
+        // Tests & Question Bank
         Route::get('chapters/{id}/tests', [TestController::class, 'byChapter'])->name('tests.by-chapter');
         Route::get('tests/{id}', [TestController::class, 'show'])->name('tests.show');
         Route::post('tests/{id}/attempt', [TestController::class, 'attempt'])->name('tests.attempt');
@@ -136,14 +178,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->prefix('admin')->group(function () {
 
         // User management
-        Route::get('admins', [UserController::class, 'admins'])->name('admin.admins');
+        Route::get('admins', [UserController::class, 'admins'])->name('admin.admins.index');
         Route::post('admins', [UserController::class, 'createAdmin'])->name('admin.admins.create');
         Route::put('admins/{id}', [UserController::class, 'updateAdmin'])->name('admin.admins.update');
         Route::delete('admins/{id}', [UserController::class, 'deleteAdmin'])->name('admin.admins.delete');
 
-        Route::get('students', [UserController::class, 'students'])->name('admin.students');
+        Route::get('students', [UserController::class, 'students'])->name('admin.students.index');
         Route::put('students/{id}', [UserController::class, 'updateStudent'])->name('admin.students.update');
-        Route::get('teachers', [UserController::class, 'teachers'])->name('admin.teachers');
+        Route::post('students/{id}/grant-subscription', [UserController::class, 'grantSubscription'])->name('admin.students.grant-subscription');
+        Route::get('teachers', [UserController::class, 'teachers'])->name('admin.teachers.index');
         Route::post('teachers', [UserController::class, 'createTeacher'])->name('admin.teachers.create');
         Route::put('teachers/{id}', [UserController::class, 'updateTeacher'])->name('admin.teachers.update');
         Route::delete('teachers/{id}', [UserController::class, 'deleteTeacher'])->name('admin.teachers.delete');
@@ -194,7 +237,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('tests/{id}', [AdminTestController::class, 'destroy'])->name('admin.tests.destroy');
 
         // Questions
+        Route::get('tests/{id}/questions', [QuestionController::class, 'index'])->name('admin.questions.index');
         Route::post('tests/{id}/questions', [QuestionController::class, 'bulkStore'])->name('admin.questions.bulk');
+        Route::post('tests/{id}/questions/single', [QuestionController::class, 'storeSingle'])->name('admin.questions.store-single');
         Route::put('questions/{id}', [QuestionController::class, 'update'])->name('admin.questions.update');
         Route::delete('questions/{id}', [QuestionController::class, 'destroy'])->name('admin.questions.destroy');
 
@@ -211,6 +256,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('analytics/test-performance', [AnalyticsController::class, 'testPerformance'])->name('admin.analytics.test-performance');
 
         // Notifications
+        Route::get('notifications/recent', [AdminNotificationController::class, 'recent'])->name('admin.notifications.recent');
         Route::post('notifications/broadcast', [AdminNotificationController::class, 'broadcast'])->name('admin.notifications.broadcast');
     });
 });

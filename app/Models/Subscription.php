@@ -19,10 +19,10 @@ class Subscription extends Model
     protected function casts(): array
     {
         return [
-            'price'         => 'decimal:2',
+            'price' => 'decimal:2',
             'duration_days' => 'integer',
-            'features'      => 'array',
-            'is_active'     => 'boolean',
+            'features' => 'array',
+            'is_active' => 'boolean',
         ];
     }
 

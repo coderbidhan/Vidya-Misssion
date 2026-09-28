@@ -19,7 +19,7 @@ class OtpController extends Controller
     public function __construct(private readonly OtpService $otpService) {}
 
     /**
-     * Send a 6-digit OTP to the provided email address.
+     * Send a 6-digit OTP to the provided email or mobile.
      * Creates the user account if it does not exist yet.
      *
      * POST /api/auth/send-otp
@@ -27,9 +27,12 @@ class OtpController extends Controller
     public function sendOtp(SendOtpRequest $request): JsonResponse
     {
         try {
+            $identifier = $request->email ?: $request->mobile;
+            $search = $request->email ? ['email' => $request->email] : ['mobile' => $request->mobile];
+
             $user = User::firstOrCreate(
-                ['email' => $request->email],
-                ['is_active' => true]
+                $search,
+                ['role' => 'student', 'is_active' => true]
             );
 
             if (! $user->is_active) {
@@ -38,9 +41,9 @@ class OtpController extends Controller
 
             $this->otpService->sendOtp($user);
 
-            return $this->successResponse(null, 'OTP sent to your email. Valid for ' . config('vidyamission.otp_expiry_minutes') . ' minutes.');
+            return $this->successResponse(null, 'OTP sent successfully. Valid for '.config('vidyamission.otp_expiry_minutes', 10).' minutes.');
         } catch (\Exception $e) {
-            Log::warning('OTP send failed: ' . $e->getMessage(), ['email' => $request->email]);
+            Log::warning('OTP send failed: '.$e->getMessage(), ['request' => $request->all()]);
 
             return $this->errorResponse($e->getMessage(), 429, 'RATE_LIMITED');
         }
@@ -53,30 +56,32 @@ class OtpController extends Controller
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->email)->first();
+        $user = $request->email
+            ? User::where('email', $request->email)->first()
+            : User::where('mobile', $request->mobile)->first();
 
-        if (! $this->otpService->verifyOtp($user, $request->otp)) {
+        if (! $user || ! $this->otpService->verifyOtp($user, $request->otp)) {
             return $this->errorResponse('Invalid or expired OTP.', 401, 'INVALID_OTP');
         }
 
         // Mark as verified and clear OTP
         $user->update([
-            'is_verified'    => true,
-            'otp'            => null,
+            'is_verified' => true,
+            'otp' => null,
             'otp_expires_at' => null,
         ]);
 
         $needsProfile = $user->trial_starts_at === null;
 
         // Token expiry based on role
-        $tokenExpiryDays = config('vidyamission.token_expiry.' . $user->role, 30);
+        $tokenExpiryDays = config('vidyamission.token_expiry.'.$user->role, 30);
         $expiresAt = now()->addDays($tokenExpiryDays);
 
         $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
 
         return $this->successResponse([
-            'token'        => $token,
-            'user'         => $user->only(['id', 'name', 'email', 'role', 'trial_ends_at']),
+            'token' => $token,
+            'user' => $user->only(['id', 'name', 'email', 'mobile', 'role', 'trial_ends_at']),
             'needs_profile' => $needsProfile,
         ], 'Login successful.');
     }
@@ -88,7 +93,7 @@ class OtpController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()?->delete();
 
         return $this->successResponse(null, 'Logged out successfully.');
     }

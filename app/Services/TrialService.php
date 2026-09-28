@@ -16,7 +16,7 @@ class TrialService
 
         $user->update([
             'trial_starts_at' => now(),
-            'trial_ends_at'   => now()->addDays($trialDays),
+            'trial_ends_at' => now()->addDays($trialDays),
         ]);
     }
 
@@ -25,9 +25,7 @@ class TrialService
      */
     public function isInTrial(User $user): bool
     {
-        return $user->trial_starts_at !== null
-            && $user->trial_ends_at !== null
-            && now()->lessThanOrEqualTo($user->trial_ends_at);
+        return $user->isInTrial();
     }
 
     /**
@@ -35,11 +33,7 @@ class TrialService
      */
     public function hasActiveSubscription(User $user): bool
     {
-        return $user->userSubscriptions()
-            ->where('payment_status', 'completed')
-            ->where('starts_at', '<=', now())
-            ->where('ends_at', '>=', now())
-            ->exists();
+        return $user->hasActiveSubscription();
     }
 
     /**
@@ -47,15 +41,6 @@ class TrialService
      */
     public function hasAccess(User $user): bool
     {
-        // Admins and teachers always have access
-        if (in_array($user->role, ['admin', 'teacher'])) {
-            return true;
-        }
-
-        if ($this->isInTrial($user)) {
-            return true;
-        }
-
-        return $this->hasActiveSubscription($user);
+        return $user->hasContentAccess();
     }
 }

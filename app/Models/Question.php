@@ -28,7 +28,7 @@ class Question extends Model
     protected function casts(): array
     {
         return [
-            'marks'      => 'integer',
+            'marks' => 'integer',
             'sort_order' => 'integer',
         ];
     }

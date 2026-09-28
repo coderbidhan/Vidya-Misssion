@@ -34,7 +34,7 @@ class ProgressService
     /**
      * Get the user's progress for all chapters in a subject.
      *
-     * @return array  Array of ['chapter_id' => bool] completion status.
+     * @return array Array of ['chapter_id' => bool] completion status.
      */
     public function getUserProgress(User $user, Subject $subject): array
     {
@@ -50,16 +50,16 @@ class ProgressService
     }
 
     /**
-     * Award a reward to a user for a chapter-related achievement.
+     * Award a reward to a user for a chapter or class achievement.
      */
-    public function awardReward(User $user, Chapter $chapter, string $type, array $data = []): Reward
+    public function awardReward(User $user, ?Chapter $chapter, string $type, array $data = []): Reward
     {
         return Reward::create([
-            'user_id'     => $user->id,
-            'chapter_id'  => $chapter->id,
+            'user_id' => $user->id,
+            'chapter_id' => $chapter?->id,
             'reward_type' => $type,
             'reward_data' => $data,
-            'earned_at'   => now(),
+            'earned_at' => now(),
         ]);
     }
 }

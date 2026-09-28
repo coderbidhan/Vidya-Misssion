@@ -12,6 +12,9 @@ class Chapter extends Model
         'subject_id',
         'class_level',
         'title',
+        'image',
+        'color',
+        'theme',
         'sort_order',
         'is_active',
     ];
@@ -20,7 +23,7 @@ class Chapter extends Model
     {
         return [
             'class_level' => 'integer',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

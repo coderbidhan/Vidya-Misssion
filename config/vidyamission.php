@@ -28,8 +28,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'gdrive' => [
-        'base_url'      => env('GDRIVE_BASE_URL', 'https://drive.google.com/file/d/'),
-        'client_id'     => env('GOOGLE_DRIVE_CLIENT_ID'),
+        'base_url' => env('GDRIVE_BASE_URL', 'https://drive.google.com/file/d/'),
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
     ],
 
@@ -42,14 +42,15 @@ return [
     'payment_gateway' => env('PAYMENT_GATEWAY', 'razorpay'),
 
     'razorpay' => [
-        'key_id'     => env('RAZORPAY_KEY_ID'),
+        'key_id' => env('RAZORPAY_KEY_ID'),
         'key_secret' => env('RAZORPAY_KEY_SECRET'),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET', env('RAZORPAY_KEY_SECRET')),
     ],
 
     'cashfree' => [
-        'app_id'     => env('CASHFREE_APP_ID'),
+        'app_id' => env('CASHFREE_APP_ID'),
         'secret_key' => env('CASHFREE_SECRET_KEY'),
-        'base_url'   => env('CASHFREE_BASE_URL', 'https://sandbox.cashfree.com/pg'),
+        'base_url' => env('CASHFREE_BASE_URL', 'https://sandbox.cashfree.com/pg'),
     ],
 
     /*
@@ -60,7 +61,7 @@ return [
     'token_expiry' => [
         'student' => 30,
         'teacher' => 365,
-        'admin'   => 365,
+        'admin' => 365,
     ],
 
 ];

@@ -27,7 +27,10 @@ class RecordedClassController extends Controller
     public function store(RecordedClassRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['gdrive_embed_url'] = $this->driveService->getEmbedUrl($data['gdrive_file_id']);
+
+        $parsed = $this->parseVideoSource($data['gdrive_file_id']);
+        $data['gdrive_file_id'] = $parsed['gdrive_file_id'];
+        $data['gdrive_embed_url'] = $parsed['gdrive_embed_url'];
 
         $class = RecordedClass::create($data);
 
@@ -37,10 +40,12 @@ class RecordedClassController extends Controller
     public function update(RecordedClassRequest $request, int $id): JsonResponse
     {
         $class = RecordedClass::findOrFail($id);
-        $data  = $request->validated();
+        $data = $request->validated();
 
         if (isset($data['gdrive_file_id'])) {
-            $data['gdrive_embed_url'] = $this->driveService->getEmbedUrl($data['gdrive_file_id']);
+            $parsed = $this->parseVideoSource($data['gdrive_file_id']);
+            $data['gdrive_file_id'] = $parsed['gdrive_file_id'];
+            $data['gdrive_embed_url'] = $parsed['gdrive_embed_url'];
         }
 
         $class->update($data);
@@ -53,5 +58,38 @@ class RecordedClassController extends Controller
         RecordedClass::findOrFail($id)->delete();
 
         return $this->successResponse(null, 'Recorded class deleted.');
+    }
+
+    /**
+     * Parse Google Drive ID/URL or YouTube link/ID to extract ID and construct embed URL.
+     */
+    private function parseVideoSource(string $input): array
+    {
+        $fileId = trim($input);
+        $embedUrl = '';
+
+        // 1. YouTube URLs (watch, embed, short link)
+        if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i', $fileId, $match)) {
+            $fileId = $match[1];
+            $embedUrl = "https://www.youtube.com/embed/{$fileId}";
+        }
+        // 2. Plain YouTube Video ID (11 chars)
+        elseif (preg_match('/^[a-zA-Z0-9_-]{11}$/', $fileId)) {
+            $embedUrl = "https://www.youtube.com/embed/{$fileId}";
+        }
+        // 3. Google Drive share URL
+        elseif (preg_match('/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i', $fileId, $match)) {
+            $fileId = $match[1];
+            $embedUrl = "https://drive.google.com/file/d/{$fileId}/preview";
+        }
+        // 4. Plain Google Drive File ID
+        else {
+            $embedUrl = "https://drive.google.com/file/d/{$fileId}/preview";
+        }
+
+        return [
+            'gdrive_file_id' => $fileId,
+            'gdrive_embed_url' => $embedUrl,
+        ];
     }
 }

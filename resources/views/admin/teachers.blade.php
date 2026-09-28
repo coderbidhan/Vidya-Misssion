@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title','Teachers')
 @section('page-title','Teachers')
-@section('page-subtitle','Manage teacher accounts and subject assignments')
+@section('page-subtitle','Manage teacher accounts, photos, and subject assignments')
 @section('topbar-actions')
     <button class="btn btn-primary topbar-btn" onclick="openModal('addTeacherModal')">＋ Add Teacher</button>
 @endsection
@@ -21,7 +21,7 @@
     </div>
     <div class="table-wrapper">
         <table>
-            <thead><tr><th>#</th><th>Teacher</th><th>Qualification</th><th>Subjects</th><th>Classes</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>#</th><th>Photo</th><th>Teacher</th><th>Qualification</th><th>Assigned Subjects</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="teachersBody">
                 <tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div> Loading…</td></tr>
             </tbody>
@@ -41,7 +41,7 @@
             <button class="modal-close" onclick="closeModal('addTeacherModal')">×</button>
         </div>
         <div class="modal-body">
-            <form id="addTeacherForm">
+            <form id="addTeacherForm" enctype="multipart/form-data">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
@@ -58,19 +58,24 @@
                         <label class="form-label">Mobile</label>
                         <input type="text" class="form-control" id="t-mobile" placeholder="+91 98765 43210">
                     </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Password *</label>
                         <input type="text" class="form-control" id="t-password" placeholder="Min. 6 chars" required>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Qualification</label>
-                        <input type="text" class="form-control" id="t-qual" placeholder="M.Sc Physics">
+                        <input type="text" class="form-control" id="t-qual" placeholder="M.Sc Physics / B.Ed">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teacher Photo</label>
+                        <input type="file" class="form-control" id="t-avatar" accept="image/*">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Bio</label>
-                    <textarea class="form-control" id="t-bio" placeholder="Brief bio about the teacher…" rows="3"></textarea>
+                    <textarea class="form-control" id="t-bio" placeholder="Brief bio about teacher's experience…" rows="3"></textarea>
                 </div>
             </form>
         </div>
@@ -105,16 +110,21 @@
                     <label class="form-label">Mobile</label>
                     <input type="text" class="form-control" id="et-mobile">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="text" class="form-control" id="et-password" placeholder="Leave blank to keep unchanged">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Qualification</label>
-                        <input type="text" class="form-control" id="et-qual">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="text" class="form-control" id="et-password" placeholder="Leave blank to keep unchanged">
                 </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Qualification</label>
+                    <input type="text" class="form-control" id="et-qual">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Update Photo</label>
+                    <input type="file" class="form-control" id="et-avatar" accept="image/*">
+                </div>
+            </div>
             <div class="form-group">
                 <label class="form-label">Bio</label>
                 <textarea class="form-control" id="et-bio" rows="3"></textarea>
@@ -138,31 +148,34 @@
 <div class="modal-backdrop" id="assignModal">
     <div class="modal">
         <div class="modal-header">
-            <span class="modal-title">📚 Assign Subjects</span>
+            <span class="modal-title">📚 Assign Subjects to Teacher</span>
             <button class="modal-close" onclick="closeModal('assignModal')">×</button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="as-teacher-id">
-            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">Assign a Class and Subject to this teacher:</p>
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem">Select Class and Subject to map to this teacher:</p>
             
-            <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
-                <select id="as-class" class="form-control" onchange="updateAssignSubjects()">
+            <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+                <select id="as-class" class="form-control" style="flex:1;min-width:130px" onchange="updateAssignSubjects()">
                     <option value="">Select Class...</option>
-                    ${[...Array(12).keys()].map(i=>`<option value="${i+1}">Class ${i+1}</option>`).join('')}
+                    @for($c=1; $c<=12; $c++)
+                        <option value="{{ $c }}">Class {{ $c }}</option>
+                    @endfor
                 </select>
-                <select id="as-subject" class="form-control" disabled>
+                <select id="as-subject" class="form-control" style="flex:2;min-width:180px" disabled>
                     <option value="">Select Subject...</option>
                 </select>
-                <button class="btn btn-outline" type="button" onclick="addAssignment()">Add</button>
+                <button class="btn btn-primary" type="button" onclick="addAssignment()">＋ Add</button>
             </div>
             
-            <div id="assignmentList" style="display:flex;flex-direction:column;gap:0.4rem;">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase">Assigned Subjects:</div>
+            <div id="assignmentList" style="display:flex;flex-direction:column;gap:0.4rem;max-height:220px;overflow-y:auto">
                 <!-- Filled via JS -->
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-outline" onclick="closeModal('assignModal')">Cancel</button>
-            <button class="btn btn-primary" onclick="saveSubjects()">Save Assignment</button>
+            <button class="btn btn-primary" onclick="saveSubjects()">Save All Assignments</button>
         </div>
     </div>
 </div>
@@ -180,24 +193,28 @@ async function loadTeachers(page = 1) {
     try {
         const res = await api('GET', `/admin/teachers?page=${page}`);
         const data = res.data || [];
-        document.getElementById('teachersBody').innerHTML = data.length ? data.map((t, i) => `
+        document.getElementById('teachersBody').innerHTML = data.length ? data.map((t, i) => {
+            const avatarHtml = t.teacher_profile?.avatar_url
+                ? `<img src="${t.teacher_profile.avatar_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">`
+                : `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">${t.name.charAt(0).toUpperCase()}</div>`;
+            return `
             <tr>
                 <td style="color:var(--text-muted)">${(page-1)*20+i+1}</td>
+                <td>${avatarHtml}</td>
                 <td>
                     <div style="font-weight:600">${t.name}</div>
-                    <div style="font-size:0.75rem;color:var(--text-muted)">${t.email}</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted)">${t.email} ${t.mobile ? ' • ' + t.mobile : ''}</div>
                 </td>
                 <td>${t.teacher_profile?.qualification || '—'}</td>
-                <td style="max-width:250px;white-space:normal">${(t.subjects||[]).map(s=>`<span class="badge badge-purple" style="margin-bottom:0.2rem;display:inline-block">Class ${s.class_level}: ${s.name}</span>`).join(' ') || '—'}</td>
-                <td>—</td>
+                <td style="max-width:280px;white-space:normal">${(t.subjects||[]).map(s=>`<span class="badge badge-purple" style="margin-bottom:0.25rem;display:inline-block">Class ${s.class_level}: ${s.name}</span>`).join(' ') || '<span style="color:var(--text-muted);font-size:0.8rem">No subjects assigned</span>'}</td>
                 <td><span class="badge ${t.is_active ? 'badge-success' : 'badge-danger'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
                 <td style="display:flex;gap:0.4rem;flex-wrap:wrap">
-                    <button class="btn btn-outline btn-sm" onclick="editTeacher(JSON.parse(this.dataset.teacher))" data-teacher='${JSON.stringify(t).replace(/'/g, "&#39;")}'>✏️</button>
-                    <button class="btn btn-outline btn-sm" onclick="openAssign(JSON.parse(this.dataset.teacher))" data-teacher='${JSON.stringify(t).replace(/'/g, "&#39;")}'>📚</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑</button>
+                    <button class="btn btn-outline btn-sm" title="Edit Teacher" onclick="editTeacher(JSON.parse(this.dataset.teacher))" data-teacher='${JSON.stringify(t).replace(/'/g, "&#39;")}'>✏️</button>
+                    <button class="btn btn-outline btn-sm" title="Assign Subjects" onclick="openAssign(JSON.parse(this.dataset.teacher))" data-teacher='${JSON.stringify(t).replace(/'/g, "&#39;")}'>📚 Subjects</button>
+                    <button class="btn btn-danger btn-sm" title="Deactivate" onclick="deleteTeacher(${t.id})">🗑</button>
                 </td>
             </tr>
-        `).join('') : '<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">No teachers found.</td></tr>';
+        `;}).join('') : '<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--text-muted)">No teachers found.</td></tr>';
         const meta = res.meta;
         if (meta && meta.last_page > 1) {
             document.getElementById('paginationBar').style.display = 'flex';
@@ -208,15 +225,29 @@ async function loadTeachers(page = 1) {
 
 async function createTeacher() {
     try {
-        await api('POST', '/admin/teachers', {
-            name: document.getElementById('t-name').value,
-            email: document.getElementById('t-email').value,
-            mobile: document.getElementById('t-mobile').value,
-            password: document.getElementById('t-password').value,
-            qualification: document.getElementById('t-qual').value,
-            bio: document.getElementById('t-bio').value,
+        const formData = new FormData();
+        formData.append('name', document.getElementById('t-name').value);
+        formData.append('email', document.getElementById('t-email').value);
+        formData.append('mobile', document.getElementById('t-mobile').value);
+        formData.append('password', document.getElementById('t-password').value);
+        formData.append('qualification', document.getElementById('t-qual').value);
+        formData.append('bio', document.getElementById('t-bio').value);
+        const avatarFile = document.getElementById('t-avatar').files[0];
+        if (avatarFile) formData.append('avatar', avatarFile);
+
+        const res = await fetch(API + '/admin/teachers', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + TOKEN,
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: formData
         });
-        toast('Teacher created successfully!', 'success');
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || 'Failed to create teacher');
+
+        toast('Teacher created successfully with photo!', 'success');
         closeModal('addTeacherModal');
         document.getElementById('addTeacherForm').reset();
         loadTeachers(1);
@@ -229,24 +260,42 @@ function editTeacher(t) {
     document.getElementById('et-email').value = t.email;
     document.getElementById('et-mobile').value = t.mobile || '';
     document.getElementById('et-qual').value = t.teacher_profile?.qualification || '';
-    document.getElementById('et-password').value = ''; // clear out
+    document.getElementById('et-password').value = '';
     document.getElementById('et-bio').value = t.teacher_profile?.bio || '';
     document.getElementById('et-active').value = t.is_active ? '1' : '0';
+    document.getElementById('et-avatar').value = '';
     openModal('editTeacherModal');
 }
 
 async function updateTeacher() {
     const id = document.getElementById('et-id').value;
     try {
-        await api('PUT', `/admin/teachers/${id}`, {
-            name: document.getElementById('et-name').value,
-            email: document.getElementById('et-email').value,
-            mobile: document.getElementById('et-mobile').value,
-            password: document.getElementById('et-password').value,
-            qualification: document.getElementById('et-qual').value,
-            bio: document.getElementById('et-bio').value,
-            is_active: document.getElementById('et-active').value === '1',
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('name', document.getElementById('et-name').value);
+        formData.append('email', document.getElementById('et-email').value);
+        formData.append('mobile', document.getElementById('et-mobile').value);
+        if (document.getElementById('et-password').value) {
+            formData.append('password', document.getElementById('et-password').value);
+        }
+        formData.append('qualification', document.getElementById('et-qual').value);
+        formData.append('bio', document.getElementById('et-bio').value);
+        formData.append('is_active', document.getElementById('et-active').value);
+        const avatarFile = document.getElementById('et-avatar').files[0];
+        if (avatarFile) formData.append('avatar', avatarFile);
+
+        const res = await fetch(API + `/admin/teachers/${id}`, {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + TOKEN,
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': CSRF
+            },
+            body: formData
         });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || 'Failed to update teacher');
+
         toast('Teacher updated!', 'success');
         closeModal('editTeacherModal');
         loadTeachers(currentPage);
@@ -272,12 +321,7 @@ async function openAssign(teacher) {
         allClassSubjects = res.data || [];
     }
 
-    // Populate Class dropdown
-    const classSelect = document.getElementById('as-class');
-    const distinctClasses = [...new Set(allClassSubjects.map(cs => cs.class_level))].sort((a,b)=>a-b);
-    classSelect.innerHTML = '<option value="">Select Class...</option>' + 
-        distinctClasses.map(c => `<option value="${c}">Class ${c}</option>`).join('');
-    
+    document.getElementById('as-class').value = '';
     document.getElementById('as-subject').innerHTML = '<option value="">Select Subject...</option>';
     document.getElementById('as-subject').disabled = true;
 
@@ -294,6 +338,11 @@ function updateAssignSubjects() {
         return;
     }
     const subjects = allClassSubjects.filter(cs => cs.class_level === classLevel);
+    if (!subjects.length) {
+        subSelect.innerHTML = '<option value="">No subjects mapped to this class</option>';
+        subSelect.disabled = true;
+        return;
+    }
     subSelect.innerHTML = '<option value="">Select Subject...</option>' + 
         subjects.map(s => `<option value="${s.subject_id}">${s.subject_name}</option>`).join('');
     subSelect.disabled = false;
@@ -342,7 +391,7 @@ async function saveSubjects() {
     const id = document.getElementById('as-teacher-id').value;
     try {
         await api('POST', `/admin/teachers/${id}/assign-subjects`, { assignments: currentAssignments });
-        toast('Subjects assigned!', 'success');
+        toast('Subjects assigned successfully!', 'success');
         closeModal('assignModal');
         loadTeachers(currentPage);
     } catch(e) { toast(e.message, 'error'); }

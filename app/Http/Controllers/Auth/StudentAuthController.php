@@ -34,6 +34,7 @@ class StudentAuthController extends Controller
                 $user = User::create([
                     'name' => $request->name,
                     'mobile' => $request->mobile,
+                    'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'role' => 'student',
                     'is_verified' => true,
@@ -45,7 +46,7 @@ class StudentAuthController extends Controller
                     'user_id' => $user->id,
                     'name' => $request->name,
                     'class' => $request->class,
-                    'school_name' => null, // Left optional/nullable as not in registration payload
+                    'school_name' => $request->school_name,
                     'district' => $request->district,
                 ]);
 
@@ -72,13 +73,17 @@ class StudentAuthController extends Controller
     }
 
     /**
-     * Authenticate a student using mobile and password.
+     * Authenticate a student using mobile/email and password.
      *
      * POST /api/auth/login
      */
     public function login(StudentLoginRequest $request): JsonResponse
     {
-        $user = User::where('mobile', $request->mobile)
+        $login = $request->input('mobile') ?: ($request->input('login') ?: $request->input('email'));
+
+        $user = User::where(function ($query) use ($login) {
+            $query->where('mobile', $login)->orWhere('email', $login);
+        })
             ->where('role', 'student')
             ->first();
 
@@ -89,6 +94,9 @@ class StudentAuthController extends Controller
         if (! $user->is_active) {
             return $this->errorResponse('Your account has been deactivated. Contact support.', 403, 'ACCOUNT_DEACTIVATED');
         }
+
+        // Single device login enforcement: revoke all previous tokens so previous device is logged out
+        $user->tokens()->delete();
 
         // Generate token
         $tokenExpiryDays = config('vidyamission.token_expiry.student', 30);
@@ -103,7 +111,7 @@ class StudentAuthController extends Controller
     }
 
     /**
-     * Reset/Forgot password for the authenticated student.
+     * Reset/Forgot password for a student.
      *
      * POST /api/auth/forgot-password
      */
@@ -111,8 +119,19 @@ class StudentAuthController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'student') {
-            return $this->errorResponse('Unauthorized.', 403, 'UNAUTHORIZED');
+        if (! $user) {
+            $identifier = $request->mobile ?: $request->email;
+            if (! $identifier) {
+                return $this->errorResponse('Mobile number or email is required to reset password.', 422, 'MISSING_IDENTIFIER');
+            }
+
+            $user = User::where('mobile', $identifier)
+                ->orWhere('email', $identifier)
+                ->first();
+        }
+
+        if (! $user) {
+            return $this->errorResponse('Account not found with provided details.', 404, 'USER_NOT_FOUND');
         }
 
         $user->update([

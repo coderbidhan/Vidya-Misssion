@@ -18,9 +18,9 @@ return new class extends Migration
         Schema::table('chapters', function (Blueprint $table) {
             // After subject_id so the index is logical
             $table->tinyInteger('class_level')
-                  ->nullable()
-                  ->after('subject_id')
-                  ->comment('School grade: 1–12. NULL = class-agnostic content.');
+                ->nullable()
+                ->after('subject_id')
+                ->comment('School grade: 1–12. NULL = class-agnostic content.');
 
             // Composite index for fast lookups: subject × class
             $table->index(['subject_id', 'class_level'], 'chapters_subject_class_idx');

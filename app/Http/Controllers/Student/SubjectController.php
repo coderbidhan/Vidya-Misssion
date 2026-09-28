@@ -23,12 +23,24 @@ class SubjectController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user         = $request->user();
+        $user = $request->user();
         $studentClass = $user->studentProfile?->class;
+        $hasActiveSubscription = $user->hasActiveSubscription();
 
-        if ($studentClass) {
-            // Return only subjects mapped to this student's class
-            $subjectIds = ClassSubject::where('class_level', $studentClass)
+        // Determine target class level:
+        // 1. If explicit class_level is provided (e.g. ?class_level=10), use it.
+        // 2. If class_level is 'all' or '0', return all subjects without class filter.
+        // 3. Otherwise default to the student's enrolled profile class if present.
+        if ($request->filled('class_level')) {
+            $classParam = strtolower((string) $request->class_level);
+            $targetClass = in_array($classParam, ['all', '0', 'null', 'none']) ? null : (int) $request->class_level;
+        } else {
+            $targetClass = $studentClass ? (int) $studentClass : null;
+        }
+
+        if ($targetClass) {
+            // Return only subjects mapped to this class
+            $subjectIds = ClassSubject::where('class_level', $targetClass)
                 ->pluck('subject_id');
 
             $subjects = Subject::where('is_active', true)
@@ -36,12 +48,17 @@ class SubjectController extends Controller
                 ->orderBy('sort_order')
                 ->get(['id', 'name', 'color', 'icon', 'image', 'sort_order']);
         } else {
-            // No class set yet — return all subjects
+            // Return all active subjects
             $subjects = Subject::where('is_active', true)
                 ->orderBy('sort_order')
                 ->get(['id', 'name', 'color', 'icon', 'image', 'sort_order']);
         }
 
-        return $this->successResponse($subjects);
+        return $this->successResponse([
+            'class_level' => $targetClass,
+            'is_trial_mode' => ! $hasActiveSubscription,
+            'is_subscription_active' => $hasActiveSubscription,
+            'subjects' => $subjects,
+        ]);
     }
 }

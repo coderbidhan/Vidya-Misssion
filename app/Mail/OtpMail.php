@@ -16,8 +16,8 @@ class OtpMail extends Mailable
     /**
      * Create a new message instance.
      *
-     * @param  \App\Models\User  $user  The recipient.
-     * @param  string            $otp   The plain-text OTP code.
+     * @param  User  $user  The recipient.
+     * @param  string  $otp  The plain-text OTP code.
      */
     public function __construct(
         public readonly User $user,
@@ -42,9 +42,9 @@ class OtpMail extends Mailable
         return new Content(
             view: 'emails.otp',
             with: [
-                'user'           => $this->user,
-                'otp'            => $this->otp,
-                'expiryMinutes'  => config('vidyamission.otp_expiry_minutes', 10),
+                'user' => $this->user,
+                'otp' => $this->otp,
+                'expiryMinutes' => config('vidyamission.otp_expiry_minutes', 10),
             ]
         );
     }

@@ -12,14 +12,15 @@ class SendOtpEmail implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     /**
      * Create a new job instance.
      *
-     * @param  \App\Models\User  $user  The user to send the OTP to.
-     * @param  string            $otp   The plain-text OTP (before hashing).
+     * @param  User  $user  The user to send the OTP to.
+     * @param  string  $otp  The plain-text OTP (before hashing).
      */
     public function __construct(
         public readonly User $user,

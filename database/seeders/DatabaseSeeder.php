@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed the application's database with complete West Bengal Board curriculum (Classes 5-12).
      */
     public function run(): void
     {
@@ -15,7 +15,10 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             SubjectSeeder::class,
             SubscriptionSeeder::class,
-            Class10MaterialSeeder::class,
+            UserAndProfileSeeder::class,
+            ClassSubjectSeeder::class,
+            WestBengalCurriculumSeeder::class,
+            UserActivitySeeder::class,
         ]);
     }
 }

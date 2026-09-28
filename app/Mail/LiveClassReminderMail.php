@@ -21,7 +21,7 @@ class LiveClassReminderMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Live Class Starting Soon — ' . $this->liveClass->title);
+        return new Envelope(subject: 'Live Class Starting Soon — '.$this->liveClass->title);
     }
 
     public function content(): Content
@@ -29,7 +29,7 @@ class LiveClassReminderMail extends Mailable
         return new Content(
             view: 'emails.live_class_reminder',
             with: [
-                'user'      => $this->user,
+                'user' => $this->user,
                 'liveClass' => $this->liveClass,
             ]
         );

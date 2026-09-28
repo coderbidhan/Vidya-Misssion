@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Progress;
 use App\Models\Subject;
 use App\Models\Test;
 use App\Models\User;
@@ -22,9 +21,9 @@ class AnalyticsController extends Controller
      */
     public function overview(): JsonResponse
     {
-        $totalStudents      = User::where('role', 'student')->count();
-        $totalTeachers      = User::where('role', 'teacher')->count();
-        $trialUsers         = User::where('role', 'student')
+        $totalStudents = User::where('role', 'student')->count();
+        $totalTeachers = User::where('role', 'teacher')->count();
+        $trialUsers = User::where('role', 'student')
             ->whereNotNull('trial_starts_at')
             ->where('trial_ends_at', '>=', now())
             ->count();
@@ -32,16 +31,16 @@ class AnalyticsController extends Controller
             ->where('starts_at', '<=', now())
             ->where('ends_at', '>=', now())
             ->count();
-        $totalRevenue       = UserSubscription::where('payment_status', 'completed')->sum(
+        $totalRevenue = UserSubscription::where('payment_status', 'completed')->sum(
             \DB::raw('(SELECT price FROM subscriptions WHERE subscriptions.id = user_subscriptions.subscription_id)')
         );
 
         return $this->successResponse([
-            'total_students'        => $totalStudents,
-            'total_teachers'        => $totalTeachers,
-            'trial_users'           => $trialUsers,
-            'active_subscriptions'  => $activeSubscriptions,
-            'total_revenue'         => round((float) $totalRevenue, 2),
+            'total_students' => $totalStudents,
+            'total_teachers' => $totalTeachers,
+            'trial_users' => $trialUsers,
+            'active_subscriptions' => $activeSubscriptions,
+            'total_revenue' => round((float) $totalRevenue, 2),
         ]);
     }
 
@@ -70,16 +69,16 @@ class AnalyticsController extends Controller
             'attempts',
             'attempts as passed_count' => fn ($q) => $q->where('is_passed', true),
         ])->with('chapter:id,title,subject_id')
-        ->paginate(20);
+            ->paginate(20);
 
         $tests->getCollection()->transform(fn ($test) => [
-            'id'          => $test->id,
-            'title'       => $test->title,
-            'chapter'     => $test->chapter,
-            'attempts'    => $test->attempts_count,
-            'passed'      => $test->passed_count,
-            'pass_rate'   => $test->attempts_count > 0
-                ? round(($test->passed_count / $test->attempts_count) * 100, 1) . '%'
+            'id' => $test->id,
+            'title' => $test->title,
+            'chapter' => $test->chapter,
+            'attempts' => $test->attempts_count,
+            'passed' => $test->passed_count,
+            'pass_rate' => $test->attempts_count > 0
+                ? round(($test->passed_count / $test->attempts_count) * 100, 1).'%'
                 : '0%',
         ]);
 
