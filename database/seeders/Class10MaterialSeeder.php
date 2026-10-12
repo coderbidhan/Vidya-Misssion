@@ -356,7 +356,10 @@ class Class10MaterialSeeder extends Seeder
         // 3. Populate subjects, chapters, class subjects and materials
         foreach ($curriculum as $item) {
             // Find or create the subject
-            $subject = Subject::where('name', $item['subject'])->first();
+            $subject = Subject::where('name', $item['subject'])
+                ->orWhere('name', 'like', "%({$item['subject']})%")
+                ->orWhere('name', 'like', "%{$item['subject']}%")
+                ->first();
             if (! $subject) {
                 $subject = Subject::create([
                     'name' => $item['subject'],

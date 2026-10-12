@@ -14,15 +14,21 @@
      Panel 2 (fixed): Subjects for selected class
      Panel 3 (flex):  Chapters for selected class + subject
 ═══════════════════════════════════════════════ --}}
-<div style="display:grid;grid-template-columns:160px 240px 1fr;gap:1rem;height:calc(100vh - 7rem)">
+<div class="mobile-view-tabs" id="mobileTabs">
+    <button id="mtab-1" class="active" onclick="switchMobilePanel(1)">🏫 1. Classes</button>
+    <button id="mtab-2" onclick="switchMobilePanel(2)">📚 2. Subjects</button>
+    <button id="mtab-3" onclick="switchMobilePanel(3)">📖 3. Chapters</button>
+</div>
+
+<div class="curriculum-layout" id="curriculumLayout">
 
     {{-- ════ PANEL 1: CLASSES ════ --}}
-    <div class="card" style="overflow:hidden;display:flex;flex-direction:column">
+    <div class="card curriculum-panel mobile-active" id="panel-1" style="overflow:hidden;display:flex;flex-direction:column">
         <div class="card-header" style="padding:1rem">
             <span class="card-title" style="font-size:0.8rem">🏫 Classes</span>
         </div>
         <div style="flex:1;overflow-y:auto;padding:0.5rem">
-            @foreach(range(1, 12) as $c)
+            @foreach(range(1, 10) as $c)
             <button
                 id="cls-btn-{{ $c }}"
                 onclick="selectClass({{ $c }})"
@@ -35,10 +41,13 @@
     </div>
 
     {{-- ════ PANEL 2: SUBJECTS ════ --}}
-    <div class="card" style="overflow:hidden;display:flex;flex-direction:column">
+    <div class="card curriculum-panel" id="panel-2" style="overflow:hidden;display:flex;flex-direction:column">
         <div class="card-header" style="padding:1rem;gap:0.5rem">
             <span class="card-title" style="font-size:0.8rem" id="subjPanelTitle">📚 Subjects</span>
-            <button class="btn btn-primary btn-sm" id="assignSubjBtn" style="display:none;font-size:0.72rem;padding:0.28rem 0.6rem" onclick="openAssignModal()">＋ Assign</button>
+            <div style="display:flex;gap:0.3rem">
+                <button class="btn btn-outline btn-sm mobile-only-btn" style="display:none;font-size:0.72rem;padding:0.28rem 0.6rem" onclick="switchMobilePanel(1)">← Classes</button>
+                <button class="btn btn-primary btn-sm" id="assignSubjBtn" style="display:none;font-size:0.72rem;padding:0.28rem 0.6rem" onclick="openAssignModal()">＋ Assign</button>
+            </div>
         </div>
         <div style="flex:1;overflow-y:auto;padding:0.5rem" id="subjectPanel">
             <div class="empty-state" style="padding:2rem 1rem">
@@ -49,13 +58,16 @@
     </div>
 
     {{-- ════ PANEL 3: CHAPTERS ════ --}}
-    <div class="card" style="overflow:hidden;display:flex;flex-direction:column">
+    <div class="card curriculum-panel" id="panel-3" style="overflow:hidden;display:flex;flex-direction:column">
         <div class="card-header" style="padding:1rem 1.25rem">
             <div>
                 <div class="card-title" id="chapterPanelTitle">📖 Chapters</div>
                 <div id="chapterPanelCrumb" style="font-size:0.72rem;color:#6B7280;margin-top:0.15rem"></div>
             </div>
-            <button class="btn btn-primary btn-sm" id="addChapterBtn" onclick="openAddChapter()" style="display:none">＋ Add Chapter</button>
+            <div style="display:flex;gap:0.3rem">
+                <button class="btn btn-outline btn-sm mobile-only-btn" style="display:none;font-size:0.72rem;padding:0.28rem 0.6rem" onclick="switchMobilePanel(2)">← Subjects</button>
+                <button class="btn btn-primary btn-sm" id="addChapterBtn" onclick="openAddChapter()" style="display:none">＋ Add Chapter</button>
+            </div>
         </div>
 
         {{-- Class Level filter inside chapters panel --}}
@@ -211,6 +223,55 @@
 </div>
 
 <style>
+.curriculum-layout {
+    display: grid;
+    grid-template-columns: 160px 240px 1fr;
+    gap: 1rem;
+    height: calc(100vh - 7rem);
+}
+.mobile-view-tabs {
+    display: none;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.mobile-view-tabs button {
+    flex: 1;
+    padding: 0.55rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.mobile-view-tabs button.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+@media (max-width: 992px) {
+    .curriculum-layout {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+    }
+    .mobile-view-tabs {
+        display: flex;
+    }
+    .curriculum-panel {
+        display: none !important;
+    }
+    .curriculum-panel.mobile-active {
+        display: flex !important;
+        min-height: 450px;
+    }
+    .mobile-only-btn {
+        display: inline-flex !important;
+    }
+}
+
 /* Class selector button - active state */
 .cls-btn-active {
     background: rgba(109,74,255,0.1) !important;
@@ -264,10 +325,19 @@ let selectedSubject = null;
 let allSubjectData  = {}; // cache: class → { assigned, all }
 let allChapters     = []; // raw chapters for current selection
 
+function switchMobilePanel(panelNum) {
+    document.querySelectorAll('.mobile-view-tabs button').forEach((b, idx) => {
+        b.classList.toggle('active', idx + 1 === panelNum);
+    });
+    document.querySelectorAll('.curriculum-panel').forEach(p => p.classList.remove('mobile-active'));
+    document.getElementById('panel-' + panelNum)?.classList.add('mobile-active');
+}
+
 // ─── PANEL 1: Select Class ─────────────────────────────────────
 async function selectClass(cls) {
     selectedClass   = cls;
     selectedSubject = null;
+    if (window.innerWidth <= 992) switchMobilePanel(2);
 
     // Update button styles
     document.querySelectorAll('[id^="cls-btn-"]').forEach(b => {
@@ -326,6 +396,7 @@ function renderSubjectPanel(subjects, cls) {
 // ─── PANEL 2: Select Subject ───────────────────────────────────
 async function selectSubject(subjectId, subjectName, color) {
     selectedSubject = { id: subjectId, name: subjectName, color };
+    if (window.innerWidth <= 992) switchMobilePanel(3);
 
     document.querySelectorAll('.subj-item').forEach(el => el.classList.remove('active'));
     const el = document.getElementById('si-' + subjectId);

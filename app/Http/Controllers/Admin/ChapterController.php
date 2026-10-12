@@ -12,6 +12,20 @@ class ChapterController extends Controller
 {
     use ApiResponse;
 
+    /**
+     * Get details of a single chapter.
+     *
+     * GET /api/admin/chapters/{id}
+     */
+    public function show(int $id): JsonResponse
+    {
+        $chapter = Chapter::with(['subject'])
+            ->withCount(['recordedClasses', 'liveClasses', 'notes', 'tests'])
+            ->findOrFail($id);
+
+        return $this->successResponse($chapter);
+    }
+
     public function store(ChapterRequest $request): JsonResponse
     {
         $chapter = Chapter::create($request->validated());

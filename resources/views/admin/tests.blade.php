@@ -7,7 +7,20 @@
 @endsection
 
 @section('content')
-<div style="display:grid;grid-template-columns:340px 1fr;gap:1.25rem">
+<style>
+.tests-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.25rem;
+}
+@media (max-width: 850px) {
+    .tests-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div class="tests-grid">
     <!-- Tests List -->
     <div class="card" style="height:fit-content">
         <div class="card-header">

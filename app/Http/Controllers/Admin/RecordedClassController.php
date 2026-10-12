@@ -8,6 +8,7 @@ use App\Models\RecordedClass;
 use App\Services\GoogleDriveService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class RecordedClassController extends Controller
 {
@@ -15,13 +16,55 @@ class RecordedClassController extends Controller
 
     public function __construct(private readonly GoogleDriveService $driveService) {}
 
-    public function index(): JsonResponse
+    /**
+     * List recorded classes with optional filtering by class, subject, chapter, status, and search.
+     *
+     * GET /api/admin/recorded-classes
+     */
+    public function index(Request $request): JsonResponse
     {
-        $classes = RecordedClass::with(['chapter:id,title', 'teacher:id,name'])
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = RecordedClass::with(['chapter:id,title,subject_id,class_level', 'teacher:id,name']);
+
+        if ($request->filled('class_level')) {
+            $query->whereHas('chapter', fn ($q) => $q->where('class_level', $request->integer('class_level')));
+        }
+
+        if ($request->filled('subject_id')) {
+            $query->whereHas('chapter', fn ($q) => $q->where('subject_id', $request->integer('subject_id')));
+        }
+
+        if ($request->filled('chapter_id')) {
+            $query->where('chapter_id', $request->integer('chapter_id'));
+        }
+
+        if ($request->has('is_active') && $request->input('is_active') !== '') {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $classes = $query->orderByDesc('created_at')
+            ->paginate($request->integer('per_page', 20));
 
         return $this->paginatedResponse($classes);
+    }
+
+    /**
+     * Get details of a single recorded class.
+     *
+     * GET /api/admin/recorded-classes/{id}
+     */
+    public function show(int $id): JsonResponse
+    {
+        $class = RecordedClass::with(['chapter.subject', 'teacher:id,name'])->findOrFail($id);
+
+        return $this->successResponse($class);
     }
 
     public function store(RecordedClassRequest $request): JsonResponse

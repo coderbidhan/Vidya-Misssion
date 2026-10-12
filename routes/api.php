@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AcademicClassController;
+use App\Http\Controllers\ApiDocController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ChapterController as AdminChapterController;
 use App\Http\Controllers\Admin\ClassSubjectController;
@@ -28,6 +30,13 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
+| OpenAPI Documentation Route
+|--------------------------------------------------------------------------
+*/
+Route::get('docs/openapi.json', [ApiDocController::class, 'json'])->name('api.docs.json');
+
+/*
+|--------------------------------------------------------------------------
 | Auth Routes (no authentication required)
 |--------------------------------------------------------------------------
 */
@@ -46,6 +55,14 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::post('subscriptions/webhook', [SubscriptionController::class, 'webhook'])->name('subscriptions.webhook');
+
+/*
+|--------------------------------------------------------------------------
+| Academic Classes & Curriculum Reference Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('classes', [AcademicClassController::class, 'index'])->name('classes.index');
+Route::get('classes/{classLevel}/subjects', [AcademicClassController::class, 'subjects'])->name('classes.subjects');
 
 /*
 |--------------------------------------------------------------------------
@@ -161,18 +178,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('class-subjects/{classLevel}/chapters', [ClassSubjectController::class, 'chapters'])->name('admin.class-subjects.chapters');
 
         // Chapters
+        Route::get('chapters/{id}', [AdminChapterController::class, 'show'])->name('admin.chapters.show');
         Route::post('chapters', [AdminChapterController::class, 'store'])->name('admin.chapters.store');
         Route::put('chapters/{id}', [AdminChapterController::class, 'update'])->name('admin.chapters.update');
         Route::delete('chapters/{id}', [AdminChapterController::class, 'destroy'])->name('admin.chapters.destroy');
 
         // Recorded Classes
         Route::get('recorded-classes', [AdminRecordedClassController::class, 'index'])->name('admin.recorded-classes.index');
+        Route::get('recorded-classes/{id}', [AdminRecordedClassController::class, 'show'])->name('admin.recorded-classes.show');
         Route::post('recorded-classes', [AdminRecordedClassController::class, 'store'])->name('admin.recorded-classes.store');
         Route::put('recorded-classes/{id}', [AdminRecordedClassController::class, 'update'])->name('admin.recorded-classes.update');
         Route::delete('recorded-classes/{id}', [AdminRecordedClassController::class, 'destroy'])->name('admin.recorded-classes.destroy');
 
         // Live Classes
         Route::get('live-classes', [AdminLiveClassController::class, 'index'])->name('admin.live-classes.index');
+        Route::get('live-classes/{id}', [AdminLiveClassController::class, 'show'])->name('admin.live-classes.show');
         Route::post('live-classes', [AdminLiveClassController::class, 'store'])->name('admin.live-classes.store');
         Route::put('live-classes/{id}', [AdminLiveClassController::class, 'update'])->name('admin.live-classes.update');
         Route::patch('live-classes/{id}/status', [AdminLiveClassController::class, 'updateStatus'])->name('admin.live-classes.status');
@@ -180,12 +200,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Notes
         Route::get('notes', [AdminNoteController::class, 'index'])->name('admin.notes.index');
+        Route::get('notes/{id}', [AdminNoteController::class, 'show'])->name('admin.notes.show');
         Route::post('notes', [AdminNoteController::class, 'store'])->name('admin.notes.store');
         Route::put('notes/{id}', [AdminNoteController::class, 'update'])->name('admin.notes.update');
         Route::delete('notes/{id}', [AdminNoteController::class, 'destroy'])->name('admin.notes.destroy');
 
         // Tests
         Route::get('tests', [AdminTestController::class, 'index'])->name('admin.tests.index');
+        Route::get('tests/{id}', [AdminTestController::class, 'show'])->name('admin.tests.show');
         Route::post('tests', [AdminTestController::class, 'store'])->name('admin.tests.store');
         Route::put('tests/{id}', [AdminTestController::class, 'update'])->name('admin.tests.update');
         Route::delete('tests/{id}', [AdminTestController::class, 'destroy'])->name('admin.tests.destroy');

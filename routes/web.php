@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiDocController;
 use App\Http\Controllers\Web\AdminWebController;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('home');
 })->name('home');
+
+// -------------------------------------------------------
+// Swagger / OpenAPI API Documentation
+// -------------------------------------------------------
+Route::get('/docs', [ApiDocController::class, 'index'])->name('docs');
+Route::get('/docs/openapi.json', [ApiDocController::class, 'json'])->name('docs.json');
 
 // -------------------------------------------------------
 // Admin Panel — Auth (no session required)
