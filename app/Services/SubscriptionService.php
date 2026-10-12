@@ -14,7 +14,8 @@ class SubscriptionService
     /**
      * Initiate a payment order with the configured gateway.
      *
-     * @return array  Gateway-specific order data to return to the client.
+     * @return array Gateway-specific order data to return to the client.
+     *
      * @throws \Exception
      */
     public function initiatePayment(User $user, Subscription $plan): array
@@ -23,10 +24,10 @@ class SubscriptionService
 
         // Create a pending subscription record
         $userSubscription = UserSubscription::create([
-            'user_id'          => $user->id,
-            'subscription_id'  => $plan->id,
-            'payment_gateway'  => $gateway,
-            'payment_status'   => 'pending',
+            'user_id' => $user->id,
+            'subscription_id' => $plan->id,
+            'payment_gateway' => $gateway,
+            'payment_status' => 'pending',
         ]);
 
         if ($gateway === 'razorpay') {
@@ -47,13 +48,13 @@ class SubscriptionService
         );
 
         $orderData = [
-            'amount'          => (int) ($plan->price * 100), // Razorpay uses paise
-            'currency'        => 'INR',
-            'receipt'         => 'sub_' . $userSubscription->id,
-            'notes'           => [
-                'subscription_id'      => $plan->id,
+            'amount' => (int) ($plan->price * 100), // Razorpay uses paise
+            'currency' => 'INR',
+            'receipt' => 'sub_'.$userSubscription->id,
+            'notes' => [
+                'subscription_id' => $plan->id,
                 'user_subscription_id' => $userSubscription->id,
-                'plan_name'            => $plan->name,
+                'plan_name' => $plan->name,
             ],
         ];
 
@@ -62,12 +63,12 @@ class SubscriptionService
         $userSubscription->update(['payment_id' => $order->id]);
 
         return [
-            'order_id'            => $order->id,
+            'order_id' => $order->id,
             'user_subscription_id' => $userSubscription->id,
-            'amount'              => $plan->price,
-            'currency'            => 'INR',
-            'key_id'              => config('vidyamission.razorpay.key_id'),
-            'plan_name'           => $plan->name,
+            'amount' => $plan->price,
+            'currency' => 'INR',
+            'key_id' => config('vidyamission.razorpay.key_id'),
+            'plan_name' => $plan->name,
         ];
     }
 
@@ -82,6 +83,7 @@ class SubscriptionService
     {
         if ($gateway === 'razorpay') {
             $this->handleRazorpayWebhook($payload, $signature);
+
             return;
         }
 
@@ -105,7 +107,7 @@ class SubscriptionService
 
         if ($event === 'payment.captured') {
             $paymentId = $payload['payload']['payment']['entity']['id'] ?? null;
-            $orderId   = $payload['payload']['payment']['entity']['order_id'] ?? null;
+            $orderId = $payload['payload']['payment']['entity']['order_id'] ?? null;
 
             if (! $paymentId || ! $orderId) {
                 return;
@@ -115,16 +117,17 @@ class SubscriptionService
 
             if (! $userSubscription) {
                 Log::warning("Razorpay webhook: no UserSubscription found for order {$orderId}");
+
                 return;
             }
 
             $plan = $userSubscription->subscription;
 
             $userSubscription->update([
-                'payment_id'     => $paymentId,
+                'payment_id' => $paymentId,
                 'payment_status' => 'completed',
-                'starts_at'      => now(),
-                'ends_at'        => now()->addDays($plan->duration_days),
+                'starts_at' => now(),
+                'ends_at' => now()->addDays($plan->duration_days),
             ]);
 
             // Dispatch confirmation email

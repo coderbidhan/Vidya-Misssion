@@ -28,8 +28,12 @@ class ProfileController extends Controller
         $user = $request->user()->load('studentProfile');
 
         return $this->successResponse([
-            'user'    => $user,
+            'user' => $user,
             'profile' => $user->studentProfile,
+            'is_in_trial' => $user->isInTrial(),
+            'is_trial_expired' => $user->isTrialExpired(),
+            'has_active_subscription' => $user->hasActiveSubscription(),
+            'has_access' => $user->hasAccess(),
         ]);
     }
 
@@ -47,11 +51,11 @@ class ProfileController extends Controller
         }
 
         $profile = StudentProfile::create([
-            'user_id'     => $user->id,
-            'name'        => $request->name,
-            'class'       => $request->class,
+            'user_id' => $user->id,
+            'name' => $request->name,
+            'class' => $request->class,
             'school_name' => $request->school_name,
-            'district'    => $request->district,
+            'district' => $request->district,
         ]);
 
         // Update the user's name and start the trial
@@ -60,8 +64,8 @@ class ProfileController extends Controller
         $user->refresh();
 
         return $this->successResponse([
-            'user'         => $user->only(['id', 'name', 'email', 'role', 'trial_starts_at', 'trial_ends_at']),
-            'profile'      => $profile,
+            'user' => $user->only(['id', 'name', 'email', 'role', 'trial_starts_at', 'trial_ends_at']),
+            'profile' => $profile,
             'trial_ends_at' => $user->trial_ends_at,
         ], 'Profile set up! Your 3-day free trial has started.');
     }
@@ -73,7 +77,7 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request): JsonResponse
     {
-        $user    = $request->user();
+        $user = $request->user();
         $profile = $user->studentProfile;
 
         if (! $profile) {

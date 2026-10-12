@@ -29,17 +29,17 @@ class NotificationController extends Controller
         }
 
         $title = strip_tags($request->title);
-        $body  = strip_tags($request->body);
+        $body = strip_tags($request->body);
 
         $recipients = $query->pluck('id');
 
         $notifications = $recipients->map(fn ($userId) => [
-            'user_id'    => $userId,
-            'title'      => $title,
-            'body'       => $body,
-            'type'       => 'broadcast',
-            'data'       => null,
-            'read_at'    => null,
+            'user_id' => $userId,
+            'title' => $title,
+            'body' => $body,
+            'type' => 'broadcast',
+            'data' => null,
+            'read_at' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ])->toArray();
@@ -49,6 +49,6 @@ class NotificationController extends Controller
 
         return $this->successResponse([
             'recipients_count' => count($notifications),
-        ], 'Notification broadcast to ' . count($notifications) . ' users.');
+        ], 'Notification broadcast to '.count($notifications).' users.');
     }
 }

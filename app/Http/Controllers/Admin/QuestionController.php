@@ -24,17 +24,17 @@ class QuestionController extends Controller
         $test = Test::findOrFail($testId);
 
         $questions = collect($request->questions)->map(fn ($q, $index) => [
-            'test_id'        => $test->id,
-            'question_text'  => strip_tags($q['question_text']),
-            'option_a'       => strip_tags($q['option_a']),
-            'option_b'       => strip_tags($q['option_b']),
-            'option_c'       => strip_tags($q['option_c']),
-            'option_d'       => strip_tags($q['option_d']),
+            'test_id' => $test->id,
+            'question_text' => strip_tags($q['question_text']),
+            'option_a' => strip_tags($q['option_a']),
+            'option_b' => strip_tags($q['option_b']),
+            'option_c' => strip_tags($q['option_c']),
+            'option_d' => strip_tags($q['option_d']),
             'correct_option' => $q['correct_option'],
-            'marks'          => $q['marks'] ?? 1,
-            'sort_order'     => $q['sort_order'] ?? $index,
-            'created_at'     => now(),
-            'updated_at'     => now(),
+            'marks' => $q['marks'] ?? 1,
+            'sort_order' => $q['sort_order'] ?? $index,
+            'created_at' => now(),
+            'updated_at' => now(),
         ])->toArray();
 
         Question::insert($questions);
@@ -45,7 +45,7 @@ class QuestionController extends Controller
 
         return $this->successResponse(
             Question::where('test_id', $test->id)->makeVisible('correct_option')->get(),
-            count($questions) . ' questions added.',
+            count($questions).' questions added.',
             201
         );
     }
@@ -58,7 +58,7 @@ class QuestionController extends Controller
     public function update(QuestionRequest $request, int $id): JsonResponse
     {
         $question = Question::findOrFail($id);
-        $data     = $request->validated();
+        $data = $request->validated();
 
         foreach (['question_text', 'option_a', 'option_b', 'option_c', 'option_d'] as $field) {
             if (isset($data[$field])) {
@@ -85,7 +85,7 @@ class QuestionController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $question = Question::findOrFail($id);
-        $testId   = $question->test_id;
+        $testId = $question->test_id;
         $question->delete();
 
         // Recalculate total_marks

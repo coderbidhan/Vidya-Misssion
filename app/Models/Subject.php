@@ -37,6 +37,6 @@ class Subject extends Model
     public function teachers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'teacher_subjects', 'subject_id', 'teacher_id')
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 }

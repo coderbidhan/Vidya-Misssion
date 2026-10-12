@@ -72,9 +72,9 @@ class SubscriptionController extends Controller
      */
     public function webhook(Request $request): JsonResponse
     {
-        $gateway   = $request->header('X-Payment-Gateway', config('vidyamission.payment_gateway'));
+        $gateway = $request->header('X-Payment-Gateway', config('vidyamission.payment_gateway'));
         $signature = $request->header('X-Razorpay-Signature', $request->header('X-Webhook-Signature', ''));
-        $payload   = $request->all();
+        $payload = $request->all();
 
         try {
             $this->subscriptionService->handleWebhook($payload, $signature, $gateway);

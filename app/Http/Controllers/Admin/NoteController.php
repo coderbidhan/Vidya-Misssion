@@ -28,7 +28,7 @@ class NoteController extends Controller
 
         // Handle file upload if a file was provided
         if ($request->hasFile('file')) {
-            $path            = $request->file('file')->store('notes', 'public');
+            $path = $request->file('file')->store('notes', 'public');
             $data['file_url'] = Storage::url($path);
         }
 
@@ -43,7 +43,7 @@ class NoteController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('file')) {
-            $path            = $request->file('file')->store('notes', 'public');
+            $path = $request->file('file')->store('notes', 'public');
             $data['file_url'] = Storage::url($path);
         }
 

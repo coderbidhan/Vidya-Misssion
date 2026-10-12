@@ -13,7 +13,8 @@ class SendSubscriptionConfirmation implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 30;
 
     /**

@@ -25,10 +25,11 @@ class ChapterController extends Controller
     public function bySubject(Request $request, int $subjectId): JsonResponse
     {
         $subject = Subject::where('is_active', true)->findOrFail($subjectId);
-        $user    = $request->user();
+        $user = $request->user();
+        $hasAccess = $user ? $user->hasAccess() : false;
 
         // Determine this student's class level from their profile
-        $studentClass = $user->studentProfile?->class;
+        $studentClass = $user?->studentProfile?->class;
 
         $completedChapterIds = Progress::where('user_id', $user->id)
             ->where('is_completed', true)
@@ -38,26 +39,26 @@ class ChapterController extends Controller
         $chapters = $subject->chapters()
             ->where('is_active', true)
             // Show chapters matching student's class, OR chapters with no class restriction (null)
-            ->when($studentClass, fn ($q) =>
-                $q->where(fn ($inner) =>
-                    $inner->where('class_level', $studentClass)
-                          ->orWhereNull('class_level')
-                )
+            ->when($studentClass, fn ($q) => $q->where(fn ($inner) => $inner->where('class_level', $studentClass)
+                ->orWhereNull('class_level')
+            )
             )
             ->orderBy('class_level')
             ->orderBy('sort_order')
             ->get()
             ->map(fn ($chapter) => [
-                'id'           => $chapter->id,
-                'title'        => $chapter->title,
-                'class_level'  => $chapter->class_level,
-                'sort_order'   => $chapter->sort_order,
+                'id' => $chapter->id,
+                'title' => $chapter->title,
+                'class_level' => $chapter->class_level,
+                'sort_order' => $chapter->sort_order,
                 'is_completed' => in_array($chapter->id, $completedChapterIds),
+                'is_locked' => ! $hasAccess,
             ]);
 
         return $this->successResponse([
-            'subject'  => $subject->only(['id', 'name', 'color', 'icon']),
+            'subject' => $subject->only(['id', 'name', 'color', 'icon']),
             'chapters' => $chapters,
+            'has_access' => $hasAccess,
         ]);
     }
 
@@ -69,7 +70,8 @@ class ChapterController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $chapter = Chapter::where('is_active', true)->with('subject')->findOrFail($id);
-        $user    = $request->user();
+        $user = $request->user();
+        $hasAccess = $user ? $user->hasAccess() : false;
 
         $isCompleted = Progress::where('user_id', $user->id)
             ->where('chapter_id', $id)
@@ -77,8 +79,10 @@ class ChapterController extends Controller
             ->exists();
 
         return $this->successResponse([
-            'chapter'      => $chapter,
+            'chapter' => $chapter,
             'is_completed' => $isCompleted,
+            'is_locked' => ! $hasAccess,
+            'has_access' => $hasAccess,
         ]);
     }
 
@@ -89,18 +93,29 @@ class ChapterController extends Controller
      */
     public function complete(Request $request, int $id): JsonResponse
     {
+        $user = $request->user();
+
+        if (! $user || ! $user->hasAccess()) {
+            return $this->errorResponse(
+                'Trial expired. Please subscribe to continue learning and complete chapters.',
+                403,
+                'TRIAL_EXPIRED',
+                [],
+                ['subscription_required' => true]
+            );
+        }
+
         $chapter = Chapter::where('is_active', true)->findOrFail($id);
-        $user    = $request->user();
 
         $this->progressService->markChapterComplete($user, $chapter);
         $reward = $this->progressService->awardReward($user, $chapter, 'chapter_complete', [
             'chapter_title' => $chapter->title,
-            'message'       => 'Congratulations! Chapter completed!',
+            'message' => 'Congratulations! Chapter completed!',
         ]);
 
         return $this->successResponse([
             'completed' => true,
-            'reward'    => $reward,
+            'reward' => $reward,
         ], 'Chapter marked as completed!');
     }
 }

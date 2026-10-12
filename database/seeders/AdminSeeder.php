@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
@@ -17,11 +18,11 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@vidyamission.com'],
             [
-                'name'        => 'VidyaMission Admin',
-                'password'    => \Illuminate\Support\Facades\Hash::make($defaultPassword),
-                'role'        => 'admin',
+                'name' => 'VidyaMission Admin',
+                'password' => Hash::make($defaultPassword),
+                'role' => 'admin',
                 'is_verified' => true,
-                'is_active'   => true,
+                'is_active' => true,
             ]
         );
 

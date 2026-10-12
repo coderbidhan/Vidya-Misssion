@@ -14,11 +14,11 @@ class SubscriptionSeeder extends Seeder
     {
         $plans = [
             [
-                'name'          => 'Monthly',
-                'description'   => 'Full access to all subjects, classes, notes and tests for 30 days.',
-                'price'         => 199.00,
+                'name' => 'Monthly',
+                'description' => 'Full access to all subjects, classes, notes and tests for 30 days.',
+                'price' => 199.00,
                 'duration_days' => 30,
-                'features'      => [
+                'features' => [
                     'All 7 subjects',
                     'Recorded video classes',
                     'Live classes',
@@ -29,11 +29,11 @@ class SubscriptionSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name'          => 'Quarterly',
-                'description'   => 'Best value — 3 months of uninterrupted learning.',
-                'price'         => 499.00,
+                'name' => 'Quarterly',
+                'description' => 'Best value — 3 months of uninterrupted learning.',
+                'price' => 499.00,
                 'duration_days' => 90,
-                'features'      => [
+                'features' => [
                     'All Monthly plan features',
                     'Save ₹98 vs monthly',
                     'Priority support',
@@ -41,11 +41,11 @@ class SubscriptionSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name'          => 'Annual',
-                'description'   => 'Maximum savings — a full year of learning excellence.',
-                'price'         => 1499.00,
+                'name' => 'Annual',
+                'description' => 'Maximum savings — a full year of learning excellence.',
+                'price' => 1499.00,
                 'duration_days' => 365,
-                'features'      => [
+                'features' => [
                     'All Quarterly plan features',
                     'Save ₹889 vs monthly',
                     'Exam preparation guides',

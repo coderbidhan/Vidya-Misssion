@@ -88,35 +88,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Content Routes (auth + trial/subscription check)
+    | Content Routes (auth required)
     |----------------------------------------------------------------------
     */
-    Route::middleware('trial_check')->group(function () {
+    // Subjects
+    Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::get('subjects/{id}/chapters', [ChapterController::class, 'bySubject'])->name('subjects.chapters');
 
-        // Subjects
-        Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
-        Route::get('subjects/{id}/chapters', [ChapterController::class, 'bySubject'])->name('subjects.chapters');
+    // Chapters
+    Route::get('chapters/{id}', [ChapterController::class, 'show'])->name('chapters.show');
+    Route::post('chapters/{id}/complete', [ChapterController::class, 'complete'])->name('chapters.complete');
 
-        // Chapters
-        Route::get('chapters/{id}', [ChapterController::class, 'show'])->name('chapters.show');
-        Route::post('chapters/{id}/complete', [ChapterController::class, 'complete'])->name('chapters.complete');
+    // Recorded Classes
+    Route::get('chapters/{id}/recorded-classes', [RecordedClassController::class, 'byChapter'])->name('recorded-classes.by-chapter');
+    Route::get('recorded-classes/{id}', [RecordedClassController::class, 'show'])->name('recorded-classes.show');
 
-        // Recorded Classes
-        Route::get('chapters/{id}/recorded-classes', [RecordedClassController::class, 'byChapter'])->name('recorded-classes.by-chapter');
-        Route::get('recorded-classes/{id}', [RecordedClassController::class, 'show'])->name('recorded-classes.show');
+    // Live Classes
+    Route::get('chapters/{id}/live-classes', [LiveClassController::class, 'byChapter'])->name('live-classes.by-chapter');
 
-        // Live Classes
-        Route::get('chapters/{id}/live-classes', [LiveClassController::class, 'byChapter'])->name('live-classes.by-chapter');
+    // Notes
+    Route::get('chapters/{id}/notes', [NoteController::class, 'byChapter'])->name('notes.by-chapter');
+    Route::get('notes/{id}', [NoteController::class, 'show'])->name('notes.show');
 
-        // Notes
-        Route::get('chapters/{id}/notes', [NoteController::class, 'byChapter'])->name('notes.by-chapter');
-        Route::get('notes/{id}', [NoteController::class, 'show'])->name('notes.show');
-
-        // Tests
-        Route::get('chapters/{id}/tests', [TestController::class, 'byChapter'])->name('tests.by-chapter');
-        Route::get('tests/{id}', [TestController::class, 'show'])->name('tests.show');
-        Route::post('tests/{id}/attempt', [TestController::class, 'attempt'])->name('tests.attempt');
-    });
+    // Tests
+    Route::get('chapters/{id}/tests', [TestController::class, 'byChapter'])->name('tests.by-chapter');
+    Route::get('tests/{id}', [TestController::class, 'show'])->name('tests.show');
+    Route::post('tests/{id}/attempt', [TestController::class, 'attempt'])->name('tests.attempt');
 
     /*
     |----------------------------------------------------------------------

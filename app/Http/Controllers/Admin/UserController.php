@@ -28,8 +28,8 @@ class UserController extends Controller
     {
         $query = User::where('role', 'student')
             ->with('studentProfile')
-            ->when($request->search, fn ($q) => $q->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%'));
+            ->when($request->search, fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%'));
 
         return $this->paginatedResponse($query->paginate(20));
     }
@@ -42,7 +42,7 @@ class UserController extends Controller
     public function updateStudent(Request $request, int $id): JsonResponse
     {
         $student = User::where('role', 'student')->findOrFail($id);
-        
+
         if ($request->has('is_active')) {
             $student->update(['is_active' => $request->boolean('is_active')]);
         }
@@ -82,18 +82,18 @@ class UserController extends Controller
     public function createTeacher(CreateTeacherRequest $request): JsonResponse
     {
         $teacher = User::create([
-            'name'        => strip_tags($request->name),
-            'email'       => $request->email,
-            'mobile'      => $request->mobile,
-            'password'    => Hash::make($request->password),
-            'role'        => 'teacher',
+            'name' => strip_tags($request->name),
+            'email' => $request->email,
+            'mobile' => $request->mobile,
+            'password' => Hash::make($request->password),
+            'role' => 'teacher',
             'is_verified' => true,
-            'is_active'   => true,
+            'is_active' => true,
         ]);
 
         TeacherProfile::create([
-            'user_id'       => $teacher->id,
-            'bio'           => strip_tags($request->bio ?? ''),
+            'user_id' => $teacher->id,
+            'bio' => strip_tags($request->bio ?? ''),
             'qualification' => strip_tags($request->qualification ?? ''),
         ]);
 
@@ -120,7 +120,7 @@ class UserController extends Controller
             $teacher->teacherProfile()->updateOrCreate(
                 ['user_id' => $teacher->id],
                 [
-                    'bio'           => strip_tags($request->bio ?? $teacher->teacherProfile?->bio ?? ''),
+                    'bio' => strip_tags($request->bio ?? $teacher->teacherProfile?->bio ?? ''),
                     'qualification' => strip_tags($request->qualification ?? $teacher->teacherProfile?->qualification ?? ''),
                 ]
             );
@@ -150,15 +150,15 @@ class UserController extends Controller
     public function assignSubjects(AssignSubjectsRequest $request, int $id): JsonResponse
     {
         $teacher = User::where('role', 'teacher')->findOrFail($id);
-        
+
         // Convert [{class_level, subject_id}] to sync array format for Eloquent
         $syncData = [];
         foreach ($request->assignments as $assignment) {
-            // Eloquent sync needs an array of properties if there are duplicates, 
+            // Eloquent sync needs an array of properties if there are duplicates,
             // but since we can't easily sync duplicates with the same subject_id using sync()
             // we have to delete and insert manually or use detach+attach.
             $syncData[] = [
-                'subject_id'  => $assignment['subject_id'],
+                'subject_id' => $assignment['subject_id'],
                 'class_level' => $assignment['class_level'],
             ];
         }
@@ -180,6 +180,7 @@ class UserController extends Controller
     public function admins(Request $request): JsonResponse
     {
         $admins = User::where('role', 'admin')->paginate(20);
+
         return $this->paginatedResponse($admins);
     }
 
@@ -189,12 +190,12 @@ class UserController extends Controller
     public function createAdmin(CreateAdminRequest $request): JsonResponse
     {
         $admin = User::create([
-            'name'        => strip_tags($request->name),
-            'email'       => $request->email,
-            'password'    => Hash::make($request->password),
-            'role'        => 'admin',
+            'name' => strip_tags($request->name),
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'admin',
             'is_verified' => true,
-            'is_active'   => true,
+            'is_active' => true,
         ]);
 
         return $this->successResponse($admin, 'Admin account created.', 201);
@@ -223,7 +224,7 @@ class UserController extends Controller
     public function deleteAdmin(int $id): JsonResponse
     {
         $admin = User::where('role', 'admin')->findOrFail($id);
-        
+
         // Prevent deleting the last active admin
         if (User::where('role', 'admin')->where('is_active', true)->count() <= 1 && $admin->is_active) {
             return $this->errorResponse('Cannot deactivate the last active admin.', 400);

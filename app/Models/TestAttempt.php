@@ -21,9 +21,9 @@ class TestAttempt extends Model
     protected function casts(): array
     {
         return [
-            'is_passed'    => 'boolean',
-            'answers'      => 'array',
-            'started_at'   => 'datetime',
+            'is_passed' => 'boolean',
+            'answers' => 'array',
+            'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

@@ -26,8 +26,8 @@ class OtpService
      */
     public function sendOtp(User $user): void
     {
-        $rateLimitKey = 'otp_rate_limit:' . $user->email;
-        $limit        = config('vidyamission.otp_rate_limit', 3);
+        $rateLimitKey = 'otp_rate_limit:'.$user->email;
+        $limit = config('vidyamission.otp_rate_limit', 3);
 
         // Increment rate limit counter
         $attempts = Cache::get($rateLimitKey, 0);
@@ -43,7 +43,7 @@ class OtpService
         $expiryMinutes = config('vidyamission.otp_expiry_minutes', 10);
 
         $user->update([
-            'otp'            => Hash::make($otp),
+            'otp' => Hash::make($otp),
             'otp_expires_at' => now()->addMinutes($expiryMinutes),
         ]);
 

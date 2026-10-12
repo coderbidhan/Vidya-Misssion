@@ -38,9 +38,9 @@ class OtpController extends Controller
 
             $this->otpService->sendOtp($user);
 
-            return $this->successResponse(null, 'OTP sent to your email. Valid for ' . config('vidyamission.otp_expiry_minutes') . ' minutes.');
+            return $this->successResponse(null, 'OTP sent to your email. Valid for '.config('vidyamission.otp_expiry_minutes').' minutes.');
         } catch (\Exception $e) {
-            Log::warning('OTP send failed: ' . $e->getMessage(), ['email' => $request->email]);
+            Log::warning('OTP send failed: '.$e->getMessage(), ['email' => $request->email]);
 
             return $this->errorResponse($e->getMessage(), 429, 'RATE_LIMITED');
         }
@@ -61,22 +61,22 @@ class OtpController extends Controller
 
         // Mark as verified and clear OTP
         $user->update([
-            'is_verified'    => true,
-            'otp'            => null,
+            'is_verified' => true,
+            'otp' => null,
             'otp_expires_at' => null,
         ]);
 
         $needsProfile = $user->trial_starts_at === null;
 
         // Token expiry based on role
-        $tokenExpiryDays = config('vidyamission.token_expiry.' . $user->role, 30);
+        $tokenExpiryDays = config('vidyamission.token_expiry.'.$user->role, 30);
         $expiresAt = now()->addDays($tokenExpiryDays);
 
         $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
 
         return $this->successResponse([
-            'token'        => $token,
-            'user'         => $user->only(['id', 'name', 'email', 'role', 'trial_ends_at']),
+            'token' => $token,
+            'user' => $user->only(['id', 'name', 'email', 'role', 'trial_ends_at']),
             'needs_profile' => $needsProfile,
         ], 'Login successful.');
     }

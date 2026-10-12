@@ -29,8 +29,8 @@ class SubscriptionConfirmationMail extends Mailable
         return new Content(
             view: 'emails.subscription_confirmation',
             with: [
-                'user'             => $this->user,
-                'subscription'     => $this->userSubscription->subscription,
+                'user' => $this->user,
+                'subscription' => $this->userSubscription->subscription,
                 'userSubscription' => $this->userSubscription,
             ]
         );

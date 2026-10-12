@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\UserSubscription;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,48 +15,39 @@ class CheckTrialOrSubscription
      * Grants access if the user is within the free trial period OR
      * has an active (completed) subscription.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
-        // Admin and teachers bypass this check
-        if ($user->role === 'admin' || $user->role === 'teacher') {
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Grant access if admin/teacher, within free trial window, or has active paid subscription
+        if ($user->hasAccess()) {
             return $next($request);
         }
 
-        // Step 1: Profile must be completed first (trial_starts_at set on profile completion)
+        // Profile must be completed first if trial hasn't started
         if (! $user->trial_starts_at) {
             return response()->json([
                 'success' => false,
                 'message' => 'Complete your profile first.',
-                'code'    => 'PROFILE_INCOMPLETE',
+                'code' => 'PROFILE_INCOMPLETE',
             ], Response::HTTP_FORBIDDEN);
         }
 
-        // Step 2: Still within the free trial window
-        if ($user->trial_ends_at && now()->lessThanOrEqualTo($user->trial_ends_at)) {
-            return $next($request);
-        }
-
-        // Step 3: Check for an active paid subscription
-        $hasActiveSubscription = $user->userSubscriptions()
-            ->where('payment_status', 'completed')
-            ->where('starts_at', '<=', now())
-            ->where('ends_at', '>=', now())
-            ->exists();
-
-        if ($hasActiveSubscription) {
-            return $next($request);
-        }
-
-        // Deny access — trial expired, no subscription
+        // Deny access — trial expired, no active subscription
         return response()->json([
-            'success'               => false,
-            'message'               => 'Trial expired. Please subscribe to continue learning.',
-            'code'                  => 'TRIAL_EXPIRED',
+            'success' => false,
+            'message' => 'Trial expired. Please subscribe to continue learning.',
+            'code' => 'TRIAL_EXPIRED',
             'subscription_required' => true,
         ], Response::HTTP_FORBIDDEN);
     }

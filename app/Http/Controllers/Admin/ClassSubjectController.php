@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Chapter;
 use App\Models\ClassSubject;
 use App\Models\Subject;
 use App\Traits\ApiResponse;
@@ -26,19 +27,19 @@ class ClassSubjectController extends Controller
             ->where('class_level', $classLevel)
             ->get()
             ->map(fn ($cs) => [
-                'id'         => $cs->subject->id,
-                'name'       => $cs->subject->name,
-                'color'      => $cs->subject->color,
-                'icon'       => $cs->subject->icon,
+                'id' => $cs->subject->id,
+                'name' => $cs->subject->name,
+                'color' => $cs->subject->color,
+                'icon' => $cs->subject->icon,
                 'sort_order' => $cs->subject->sort_order,
             ]);
 
         $all = Subject::orderBy('sort_order')->get(['id', 'name', 'color', 'icon']);
 
         return $this->successResponse([
-            'class_level'      => $classLevel,
+            'class_level' => $classLevel,
             'assigned_subjects' => $assigned,
-            'all_subjects'     => $all,
+            'all_subjects' => $all,
         ]);
     }
 
@@ -50,8 +51,8 @@ class ClassSubjectController extends Controller
     {
         $mappings = ClassSubject::with('subject')->get()->map(fn ($cs) => [
             'class_level' => $cs->class_level,
-            'subject_id'  => $cs->subject_id,
-            'subject_name'=> $cs->subject->name,
+            'subject_id' => $cs->subject_id,
+            'subject_name' => $cs->subject->name,
         ]);
 
         return $this->successResponse($mappings);
@@ -65,7 +66,7 @@ class ClassSubjectController extends Controller
     {
         $data = $request->validate([
             'class_level' => ['required', 'integer', 'min:1', 'max:12'],
-            'subject_id'  => ['required', 'integer', 'exists:subjects,id'],
+            'subject_id' => ['required', 'integer', 'exists:subjects,id'],
         ]);
 
         ClassSubject::firstOrCreate($data);
@@ -94,10 +95,9 @@ class ClassSubjectController extends Controller
     {
         $subjectId = $request->integer('subject_id');
 
-        $chapters = \App\Models\Chapter::where('subject_id', $subjectId)
-            ->where(fn ($q) =>
-                $q->where('class_level', $classLevel)
-                  ->orWhereNull('class_level')
+        $chapters = Chapter::where('subject_id', $subjectId)
+            ->where(fn ($q) => $q->where('class_level', $classLevel)
+                ->orWhereNull('class_level')
             )
             ->orderBy('sort_order')
             ->get();

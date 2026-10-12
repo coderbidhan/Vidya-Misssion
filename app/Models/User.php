@@ -42,11 +42,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'otp_expires_at'   => 'datetime',
-            'is_verified'      => 'boolean',
-            'is_active'        => 'boolean',
-            'trial_starts_at'  => 'datetime',
-            'trial_ends_at'    => 'datetime',
+            'otp_expires_at' => 'datetime',
+            'is_verified' => 'boolean',
+            'is_active' => 'boolean',
+            'trial_starts_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 
@@ -116,8 +116,8 @@ class User extends Authenticatable
     public function subjects(): BelongsToMany
     {
         return $this->belongsToMany(Subject::class, 'teacher_subjects', 'teacher_id', 'subject_id')
-                    ->withPivot('class_level')
-                    ->withTimestamps();
+            ->withPivot('class_level')
+            ->withTimestamps();
     }
 
     // -------------------------------------------------
@@ -146,5 +146,48 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->role === 'student';
+    }
+
+    /**
+     * Check if the user is currently within their active free trial window.
+     */
+    public function isInTrial(): bool
+    {
+        return $this->trial_starts_at !== null
+            && $this->trial_ends_at !== null
+            && now()->lessThanOrEqualTo($this->trial_ends_at);
+    }
+
+    /**
+     * Check if the user's free trial has expired.
+     */
+    public function isTrialExpired(): bool
+    {
+        return $this->trial_ends_at !== null && now()->greaterThan($this->trial_ends_at);
+    }
+
+    /**
+     * Check if the user has an active, completed paid subscription.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->userSubscriptions()
+            ->where('payment_status', 'completed')
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>=', now())
+            ->exists();
+    }
+
+    /**
+     * Check if the user has access to full course contents and tests.
+     * (Admins/Teachers always have access; Students have access via active trial OR paid subscription).
+     */
+    public function hasAccess(): bool
+    {
+        if (in_array($this->role, ['admin', 'teacher'])) {
+            return true;
+        }
+
+        return $this->isInTrial() || $this->hasActiveSubscription();
     }
 }

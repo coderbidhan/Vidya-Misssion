@@ -20,7 +20,7 @@ class Chapter extends Model
     {
         return [
             'class_level' => 'integer',
-            'is_active'   => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 

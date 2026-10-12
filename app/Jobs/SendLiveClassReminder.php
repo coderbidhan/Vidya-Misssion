@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\LiveClassReminderMail;
 use App\Models\LiveClass;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -12,7 +13,8 @@ class SendLiveClassReminder implements ShouldQueue
 {
     use Queueable;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 60;
 
     /**
@@ -23,7 +25,7 @@ class SendLiveClassReminder implements ShouldQueue
     public function handle(): void
     {
         $windowStart = now()->addMinutes(29);
-        $windowEnd   = now()->addMinutes(31);
+        $windowEnd = now()->addMinutes(31);
 
         LiveClass::where('status', 'scheduled')
             ->whereBetween('scheduled_at', [$windowStart, $windowEnd])
@@ -34,7 +36,7 @@ class SendLiveClassReminder implements ShouldQueue
                     $subject = $class->chapter->subject;
 
                     // Send to students who are in trial or subscribed
-                    \App\Models\User::where('role', 'student')
+                    User::where('role', 'student')
                         ->where('is_active', true)
                         ->whereNotNull('trial_starts_at')
                         ->chunk(100, function ($students) use ($class) {

@@ -10,7 +10,7 @@ class GoogleDriveService
      * This URL is safe to expose to the client — it does not allow direct download.
      *
      * @param  string  $fileId  The Google Drive file ID.
-     * @return string  The embed/preview URL.
+     * @return string The embed/preview URL.
      */
     public function getEmbedUrl(string $fileId): string
     {
@@ -23,7 +23,7 @@ class GoogleDriveService
      * NOTE: This URL is for internal use only and should NOT be sent to students.
      *
      * @param  string  $fileId  The Google Drive file ID.
-     * @return string  The direct view URL.
+     * @return string The direct view URL.
      */
     public function getDirectUrl(string $fileId): string
     {
@@ -34,8 +34,7 @@ class GoogleDriveService
      * Generate a thumbnail URL for a Google Drive file.
      *
      * @param  string  $fileId  The Google Drive file ID.
-     * @param  int     $size    Thumbnail size in pixels (default 320).
-     * @return string
+     * @param  int  $size  Thumbnail size in pixels (default 320).
      */
     public function getThumbnailUrl(string $fileId, int $size = 320): string
     {

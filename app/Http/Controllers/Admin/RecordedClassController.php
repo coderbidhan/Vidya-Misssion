@@ -37,7 +37,7 @@ class RecordedClassController extends Controller
     public function update(RecordedClassRequest $request, int $id): JsonResponse
     {
         $class = RecordedClass::findOrFail($id);
-        $data  = $request->validated();
+        $data = $request->validated();
 
         if (isset($data['gdrive_file_id'])) {
             $data['gdrive_embed_url'] = $this->driveService->getEmbedUrl($data['gdrive_file_id']);

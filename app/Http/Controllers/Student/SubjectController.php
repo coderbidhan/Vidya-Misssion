@@ -23,7 +23,7 @@ class SubjectController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user         = $request->user();
+        $user = $request->user();
         $studentClass = $user->studentProfile?->class;
 
         if ($studentClass) {
