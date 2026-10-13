@@ -98,19 +98,34 @@ class RazorpayGateway
     }
 
     /**
-     * Verify incoming webhook signature using the configured webhook secret and raw body.
+     * Verify incoming webhook signature using the configured webhook secret (with keySecret fallback) and raw body.
      */
     public function verifyWebhookSignature(string $rawPayload, string $signature): bool
     {
-        $webhookSecret = $this->webhookSecret;
-
-        if (empty($rawPayload) || empty($signature) || empty($webhookSecret)) {
+        if (empty($rawPayload) || empty($signature)) {
             return false;
         }
 
-        $expectedSignature = hash_hmac('sha256', $rawPayload, $webhookSecret);
+        $secrets = array_unique(array_filter([$this->webhookSecret, $this->keySecret]));
 
-        return hash_equals($expectedSignature, $signature);
+        foreach ($secrets as $secret) {
+            if (hash_equals(hash_hmac('sha256', $rawPayload, $secret), $signature)) {
+                return true;
+            }
+        }
+
+        // Fallback: check normalized JSON representation for clients that re-encoded
+        $decoded = json_decode($rawPayload, true);
+        if (is_array($decoded)) {
+            $normalized = json_encode($decoded);
+            foreach ($secrets as $secret) {
+                if (hash_equals(hash_hmac('sha256', $normalized, $secret), $signature)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

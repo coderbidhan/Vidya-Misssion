@@ -37,7 +37,7 @@ class SubscriptionController extends Controller
     {
         $subscription = $request->user()
             ->userSubscriptions()
-            ->with(['subscription', 'paymentRecord'])
+            ->with('subscription')
             ->where('payment_status', 'completed')
             ->where('ends_at', '>=', now())
             ->orderByDesc('ends_at')
@@ -148,6 +148,9 @@ class SubscriptionController extends Controller
         }
 
         $rawPayload = $request->getContent();
+        if (empty($rawPayload)) {
+            $rawPayload = (string) json_encode($request->all());
+        }
 
         try {
             $this->subscriptionService->handleWebhook($rawPayload, $signature, $gateway);

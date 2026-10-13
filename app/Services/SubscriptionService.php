@@ -26,7 +26,18 @@ class SubscriptionService
         $gateway = config('vidyamission.payment_gateway', 'razorpay');
 
         if ($gateway === 'razorpay') {
-            return $this->paymentService->initiateSubscriptionPayment($user, $plan);
+            $data = $this->paymentService->initiateSubscriptionPayment($user, $plan);
+
+            return [
+                'order_id' => $data['order_id'],
+                'user_subscription_id' => $data['user_subscription_id'],
+                'amount' => $plan->price,
+                'currency' => 'INR',
+                'key_id' => $data['key_id'],
+                'plan_name' => $plan->name,
+                'amount_paise' => $data['amount_paise'],
+                'payment_uuid' => $data['payment_uuid'],
+            ];
         }
 
         throw new Exception("Unsupported payment gateway: {$gateway}");

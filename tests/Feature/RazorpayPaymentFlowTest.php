@@ -70,7 +70,7 @@ test('authenticated student can initiate subscription payment with authoritative
         ->assertJsonPath('success', true)
         ->assertJsonPath('data.order_id', 'order_mock_test_123')
         ->assertJsonPath('data.amount_paise', 49900)
-        ->assertJsonPath('data.amount', 499)
+        ->assertJsonPath('data.amount', '499.00')
         ->assertJsonPath('data.currency', 'INR');
 
     // Verify pending database records
