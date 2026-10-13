@@ -169,6 +169,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('students', [UserController::class, 'students'])->name('admin.students');
         Route::put('students/{id}', [UserController::class, 'updateStudent'])->name('admin.students.update');
+        Route::post('students/{id}/grant-access', [UserController::class, 'grantFreeAccess'])->name('admin.students.grant-access');
         Route::get('teachers', [UserController::class, 'teachers'])->name('admin.teachers');
         Route::post('teachers', [UserController::class, 'createTeacher'])->name('admin.teachers.create');
         Route::put('teachers/{id}', [UserController::class, 'updateTeacher'])->name('admin.teachers.update');

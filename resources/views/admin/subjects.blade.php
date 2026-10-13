@@ -71,7 +71,7 @@
         </div>
 
         {{-- Class Level filter inside chapters panel --}}
-        <div id="classLevelTabs" style="display:none;padding:0 1.25rem;border-bottom:2px solid rgba(0,0,0,0.07);overflow-x:auto;white-space:nowrap">
+        <div id="classLevelTabs" style="display:none;align-items:center;gap:0.35rem;padding:0.5rem 1.25rem;border-bottom:2px solid rgba(0,0,0,0.07);overflow-x:auto;white-space:nowrap">
             <button class="tab-btn active" data-cl="all" onclick="filterChaptersByClass('all',this)">All</button>
             @foreach(range(1,12) as $c)
             <button class="tab-btn" data-cl="{{ $c }}" onclick="filterChaptersByClass({{ $c }},this)">Cls {{ $c }}</button>
@@ -270,6 +270,9 @@
     .mobile-only-btn {
         display: inline-flex !important;
     }
+    #classLevelTabs {
+        display: none !important;
+    }
 }
 
 /* Class selector button - active state */
@@ -405,7 +408,11 @@ async function selectSubject(subjectId, subjectName, color) {
     document.getElementById('chapterPanelTitle').textContent = `📖 ${subjectName} — Chapters`;
     document.getElementById('chapterPanelCrumb').textContent = `Class ${selectedClass} › ${subjectName}`;
     document.getElementById('addChapterBtn').style.display = 'flex';
-    document.getElementById('classLevelTabs').style.display = 'block';
+    if (window.innerWidth > 992) {
+        document.getElementById('classLevelTabs').style.display = 'flex';
+    } else {
+        document.getElementById('classLevelTabs').style.display = 'none';
+    }
 
     // Reset to "All" tab
     document.querySelectorAll('[data-cl]').forEach(b => b.classList.remove('active'));

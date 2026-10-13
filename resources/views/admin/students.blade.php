@@ -57,6 +57,64 @@
         </div>
     </div>
 </div>
+
+<!-- Grant Free Access Modal -->
+<div class="modal-backdrop" id="grantAccessModal">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <span class="modal-title">🎁 Grant Free Student Access</span>
+            <button class="modal-close" onclick="closeModal('grantAccessModal')">×</button>
+        </div>
+        <form id="grantAccessForm" onsubmit="submitGrantAccess(event)">
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:1.1rem">
+                <input type="hidden" id="grantStudentId">
+                
+                <div style="background:rgba(109,74,255,0.06);border:1px solid rgba(109,74,255,0.15);padding:0.85rem 1rem;border-radius:10px">
+                    <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:700;letter-spacing:0.05em">Selected Student</div>
+                    <div style="font-weight:700;font-size:1rem;color:var(--primary);margin-top:0.2rem" id="grantStudentName">—</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted)" id="grantStudentEmail">—</div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Access Type</label>
+                    <select class="search-input" id="grantAccessType" onchange="toggleAccessTypeFields()" required>
+                        <option value="subscription">Complimentary Subscription Plan (Recommended)</option>
+                        <option value="trial">Extend / Reactivate Free Trial</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="planSelectGroup" style="margin-bottom:0">
+                    <label class="form-label">Select Subscription Plan</label>
+                    <select class="search-input" id="grantSubscriptionId" onchange="onPlanChange()">
+                        <option value="">Loading plans...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Access Duration (Days)</label>
+                    <div style="display:flex;gap:0.5rem;align-items:center">
+                        <input type="number" class="search-input" id="grantDurationDays" min="1" max="3650" value="30" required style="flex:1">
+                        <div style="display:flex;gap:0.25rem">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="setGrantDays(7)">7d</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="setGrantDays(30)">30d</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="setGrantDays(90)">90d</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="setGrantDays(365)">1yr</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Administrative Reason (Optional)</label>
+                    <input type="text" class="search-input" id="grantReason" placeholder="e.g. Merit scholarship, Promotion, Support assistance">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('grantAccessModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btnSubmitGrant">Confirm Free Access</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -106,8 +164,9 @@ async function loadStudents(page = 1) {
                     ${activeSub ? `<span class="badge badge-purple">${activeSub.subscription?.name || 'Active'}</span>` : '<span style="color:var(--text-muted)">—</span>'}
                 </td>
                 <td><span class="badge ${s.is_active ? 'badge-success' : 'badge-danger'}">${s.is_active ? 'Active' : 'Suspended'}</span></td>
-                <td>
+                <td style="white-space:nowrap">
                     <button class="btn btn-outline btn-sm" onclick="viewStudent(${s.id})">👁 View</button>
+                    <button class="btn btn-outline btn-sm" onclick="openGrantAccessModal(${s.id})" style="border-color:var(--primary);color:var(--primary)" title="Grant complimentary subscription or trial">🎁 Free Access</button>
                     <button class="btn btn-sm ${s.is_active ? 'btn-danger' : 'btn-success'}" onclick="toggleStudent(${s.id}, ${s.is_active})">
                         ${s.is_active ? 'Suspend' : 'Activate'}
                     </button>
@@ -165,8 +224,113 @@ function viewStudent(id) {
                 <div><span style="color:var(--text-muted)">Trial Started:</span> <div>${trialStartDate}</div></div>
                 <div><span style="color:var(--text-muted)">Trial Ends:</span> <div>${trialDate}</div></div>
             </div>
+            <div style="display:flex;justify-content:flex-end;gap:0.75rem;padding-top:1rem;border-top:1px solid var(--border-light)">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('studentModal')">Close</button>
+                <button class="btn btn-primary btn-sm" onclick="closeModal('studentModal');openGrantAccessModal(${s.id})">🎁 Grant Free Access</button>
+            </div>
         </div>
     `;
+}
+
+let availablePlans = [];
+
+async function loadPlans() {
+    if (availablePlans.length > 0) return;
+    try {
+        const res = await api('GET', '/admin/subscription-plans');
+        availablePlans = Array.isArray(res.data) ? res.data : [];
+        const select = document.getElementById('grantSubscriptionId');
+        if (!select) return;
+        if (availablePlans.length === 0) {
+            select.innerHTML = '<option value="">No plans found</option>';
+            return;
+        }
+        select.innerHTML = availablePlans.map(p => 
+            `<option value="${p.id}" data-days="${p.duration_days}">${p.name} (${p.duration_days} days - ₹${p.price})</option>`
+        ).join('');
+        onPlanChange();
+    } catch(e) {
+        console.error('Failed to load plans:', e);
+    }
+}
+
+function onPlanChange() {
+    const select = document.getElementById('grantSubscriptionId');
+    if (!select || !select.options.length) return;
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption && selectedOption.dataset.days) {
+        document.getElementById('grantDurationDays').value = selectedOption.dataset.days;
+    }
+}
+
+function toggleAccessTypeFields() {
+    const type = document.getElementById('grantAccessType').value;
+    const planGroup = document.getElementById('planSelectGroup');
+    if (type === 'trial') {
+        planGroup.style.display = 'none';
+        if (!document.getElementById('grantDurationDays').value) {
+            document.getElementById('grantDurationDays').value = '14';
+        }
+    } else {
+        planGroup.style.display = 'block';
+        onPlanChange();
+    }
+}
+
+function setGrantDays(days) {
+    document.getElementById('grantDurationDays').value = days;
+}
+
+async function openGrantAccessModal(id) {
+    const s = cachedStudents.find(item => item.id === id);
+    if (!s) return;
+    document.getElementById('grantStudentId').value = s.id;
+    document.getElementById('grantStudentName').textContent = s.name || s.student_profile?.name || ('Student #' + s.id);
+    document.getElementById('grantStudentEmail').textContent = s.email || s.mobile || 'No email/phone';
+    document.getElementById('grantReason').value = '';
+    document.getElementById('grantAccessType').value = 'subscription';
+    toggleAccessTypeFields();
+    await loadPlans();
+    openModal('grantAccessModal');
+}
+
+async function submitGrantAccess(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitGrant');
+    const studentId = document.getElementById('grantStudentId').value;
+    const accessType = document.getElementById('grantAccessType').value;
+    const durationDays = parseInt(document.getElementById('grantDurationDays').value, 10);
+    const subscriptionId = document.getElementById('grantSubscriptionId').value;
+    const reason = document.getElementById('grantReason').value.trim();
+
+    if (!studentId || !durationDays || durationDays < 1) {
+        toast('Please enter a valid duration in days.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Granting...';
+
+    try {
+        const payload = {
+            access_type: accessType,
+            duration_days: durationDays,
+            reason: reason || undefined
+        };
+        if (accessType === 'subscription' && subscriptionId) {
+            payload.subscription_id = parseInt(subscriptionId, 10);
+        }
+
+        const res = await api('POST', `/admin/students/${studentId}/grant-access`, payload);
+        toast(res.message || 'Free access granted successfully!', 'success');
+        closeModal('grantAccessModal');
+        loadStudents(currentPage);
+    } catch(err) {
+        toast('Error granting access: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm Free Access';
+    }
 }
 
 async function toggleStudent(id, isActive) {
@@ -178,6 +342,9 @@ async function toggleStudent(id, isActive) {
     } catch(e) { toast(e.message, 'error'); }
 }
 
-window._pageInit = () => loadStudents(1);
+window._pageInit = () => {
+    loadStudents(1);
+    loadPlans();
+};
 </script>
 @endsection
