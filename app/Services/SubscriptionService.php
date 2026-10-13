@@ -2,145 +2,73 @@
 
 namespace App\Services;
 
-use App\Jobs\SendSubscriptionConfirmation;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
-use App\Models\UserSubscription;
-use Illuminate\Support\Facades\Log;
-use Razorpay\Api\Api as RazorpayApi;
+use App\Services\Payment\PaymentService;
+use Exception;
 
 class SubscriptionService
 {
+    public function __construct(
+        private readonly PaymentService $paymentService
+    ) {}
+
     /**
      * Initiate a payment order with the configured gateway.
      *
      * @return array Gateway-specific order data to return to the client.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function initiatePayment(User $user, Subscription $plan): array
     {
         $gateway = config('vidyamission.payment_gateway', 'razorpay');
 
-        // Create a pending subscription record
-        $userSubscription = UserSubscription::create([
-            'user_id' => $user->id,
-            'subscription_id' => $plan->id,
-            'payment_gateway' => $gateway,
-            'payment_status' => 'pending',
-        ]);
-
         if ($gateway === 'razorpay') {
-            return $this->createRazorpayOrder($plan, $userSubscription);
+            return $this->paymentService->initiateSubscriptionPayment($user, $plan);
         }
 
-        throw new \Exception("Unsupported payment gateway: {$gateway}");
+        throw new Exception("Unsupported payment gateway: {$gateway}");
     }
 
     /**
-     * Create a Razorpay order and return the order data.
+     * Verify payment signature from client checkout and activate subscription.
+     *
+     * @throws Exception
      */
-    private function createRazorpayOrder(Subscription $plan, UserSubscription $userSubscription): array
+    public function verifyPayment(User $user, string $orderId, string $paymentId, string $signature): Payment
     {
-        $api = new RazorpayApi(
-            config('vidyamission.razorpay.key_id'),
-            config('vidyamission.razorpay.key_secret')
-        );
-
-        $orderData = [
-            'amount' => (int) ($plan->price * 100), // Razorpay uses paise
-            'currency' => 'INR',
-            'receipt' => 'sub_'.$userSubscription->id,
-            'notes' => [
-                'subscription_id' => $plan->id,
-                'user_subscription_id' => $userSubscription->id,
-                'plan_name' => $plan->name,
-            ],
-        ];
-
-        $order = $api->order->create($orderData);
-
-        $userSubscription->update(['payment_id' => $order->id]);
-
-        return [
-            'order_id' => $order->id,
-            'user_subscription_id' => $userSubscription->id,
-            'amount' => $plan->price,
-            'currency' => 'INR',
-            'key_id' => config('vidyamission.razorpay.key_id'),
-            'plan_name' => $plan->name,
-        ];
+        return $this->paymentService->verifyAndCompletePayment($user, $orderId, $paymentId, $signature);
     }
 
     /**
-     * Handle an incoming payment gateway webhook payload.
+     * Record a payment failure reported by client checkout.
      *
-     * Verifies the HMAC signature and updates the subscription status.
-     *
-     * @throws \Exception on signature verification failure
+     * @throws Exception
      */
-    public function handleWebhook(array $payload, string $signature, string $gateway): void
+    public function handleFailure(User $user, string $orderId, ?string $code = null, ?string $reason = null): Payment
+    {
+        return $this->paymentService->handlePaymentFailure($user, $orderId, $code, $reason);
+    }
+
+    /**
+     * Handle payment gateway webhook payload.
+     *
+     * @param  string|array  $payload  Raw payload string or array
+     *
+     * @throws Exception on signature verification failure
+     */
+    public function handleWebhook(string|array $payload, string $signature, string $gateway): void
     {
         if ($gateway === 'razorpay') {
-            $this->handleRazorpayWebhook($payload, $signature);
+            $rawPayload = is_string($payload) ? $payload : (string) json_encode($payload);
+            $this->paymentService->processWebhook($rawPayload, $signature);
 
             return;
         }
 
-        throw new \Exception("Unsupported gateway webhook: {$gateway}");
-    }
-
-    /**
-     * Handle Razorpay-specific webhook verification and processing.
-     */
-    private function handleRazorpayWebhook(array $payload, string $signature): void
-    {
-        $secret = config('vidyamission.razorpay.key_secret');
-
-        // Verify HMAC signature
-        $expectedSignature = hash_hmac('sha256', json_encode($payload), $secret);
-        if (! hash_equals($expectedSignature, $signature)) {
-            throw new \Exception('Invalid Razorpay webhook signature.');
-        }
-
-        $event = $payload['event'] ?? null;
-
-        if ($event === 'payment.captured') {
-            $paymentId = $payload['payload']['payment']['entity']['id'] ?? null;
-            $orderId = $payload['payload']['payment']['entity']['order_id'] ?? null;
-
-            if (! $paymentId || ! $orderId) {
-                return;
-            }
-
-            $userSubscription = UserSubscription::where('payment_id', $orderId)->first();
-
-            if (! $userSubscription) {
-                Log::warning("Razorpay webhook: no UserSubscription found for order {$orderId}");
-
-                return;
-            }
-
-            $plan = $userSubscription->subscription;
-
-            $userSubscription->update([
-                'payment_id' => $paymentId,
-                'payment_status' => 'completed',
-                'starts_at' => now(),
-                'ends_at' => now()->addDays($plan->duration_days),
-            ]);
-
-            // Dispatch confirmation email
-            SendSubscriptionConfirmation::dispatch($userSubscription->user, $userSubscription);
-        }
-
-        if ($event === 'payment.failed') {
-            $orderId = $payload['payload']['payment']['entity']['order_id'] ?? null;
-            if ($orderId) {
-                UserSubscription::where('payment_id', $orderId)
-                    ->update(['payment_status' => 'failed']);
-            }
-        }
+        throw new Exception("Unsupported gateway webhook: {$gateway}");
     }
 
     /**

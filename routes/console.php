@@ -15,3 +15,6 @@ Schedule::job(new SendTrialExpiryReminder)->dailyAt('09:00')->name('trial-expiry
 
 // Check for live classes starting in 30 minutes — runs every minute
 Schedule::job(new SendLiveClassReminder)->everyMinute()->name('live-class-reminder')->withoutOverlapping();
+
+// Reconcile pending payments and refunds against Razorpay every 15 minutes
+Schedule::command('payment:reconcile')->everyFifteenMinutes()->name('payment-reconcile')->withoutOverlapping();

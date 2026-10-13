@@ -122,6 +122,11 @@ class AdminWebController extends Controller
         return $this->adminView('admin.subscriptions');
     }
 
+    public function payments()
+    {
+        return $this->adminView('admin.payments');
+    }
+
     public function notifications()
     {
         return $this->adminView('admin.notifications');

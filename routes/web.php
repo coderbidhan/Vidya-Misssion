@@ -35,6 +35,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('content', [AdminWebController::class, 'content'])->name('content');
         Route::get('tests', [AdminWebController::class, 'tests'])->name('tests');
         Route::get('subscriptions', [AdminWebController::class, 'subscriptions'])->name('subscriptions');
+        Route::get('payments', [AdminWebController::class, 'payments'])->name('payments');
         Route::get('notifications', [AdminWebController::class, 'notifications'])->name('notifications');
     });
 });

@@ -313,6 +313,9 @@ textarea.form-control{resize:vertical;min-height:90px;}
         <a href="{{ route('admin.subscriptions') }}" class="nav-item {{ request()->routeIs('admin.subscriptions') ? 'active' : '' }}">
             <span class="nav-icon">💳</span> Subscriptions
         </a>
+        <a href="{{ route('admin.payments') }}" class="nav-item {{ request()->routeIs('admin.payments') ? 'active' : '' }}">
+            <span class="nav-icon">💰</span> Payments & Refunds
+        </a>
         <a href="{{ route('admin.notifications') }}" class="nav-item {{ request()->routeIs('admin.notifications') ? 'active' : '' }}">
             <span class="nav-icon">🔔</span> Notifications
         </a>

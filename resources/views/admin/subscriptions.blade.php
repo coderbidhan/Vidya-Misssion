@@ -191,7 +191,7 @@ async function loadPurchases(page = 1) {
     const status = document.getElementById('purchaseFilter').value;
     const res = await api('GET', `/admin/user-subscriptions?page=${page}&status=${status}`);
     const data = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
-    const statusColors = { completed:'badge-success', pending:'badge-warning', failed:'badge-danger' };
+    const statusColors = { completed:'badge-success', pending:'badge-warning', failed:'badge-danger', refunded:'badge-purple' };
     document.getElementById('purchasesBody').innerHTML = data.length ? data.map(p => `
         <tr>
             <td>
@@ -200,7 +200,7 @@ async function loadPurchases(page = 1) {
             </td>
             <td>${p.subscription?.name||'—'}</td>
             <td style="font-weight:700">₹${parseFloat(p.subscription?.price||0).toLocaleString()}</td>
-            <td style="font-size:0.75rem;color:var(--text-muted);font-family:monospace">${p.gateway_order_id||'—'}</td>
+            <td style="font-size:0.75rem;color:var(--text-muted);font-family:monospace">${p.gateway_order_id || p.payment_id || '—'}</td>
             <td style="font-size:0.8rem">${p.starts_at ? new Date(p.starts_at).toLocaleDateString('en-IN') : '—'}</td>
             <td style="font-size:0.8rem">${p.ends_at ? new Date(p.ends_at).toLocaleDateString('en-IN') : '—'}</td>
             <td><span class="badge ${statusColors[p.payment_status]||'badge-neutral'}">${p.payment_status}</span></td>

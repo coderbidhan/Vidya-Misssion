@@ -79,6 +79,14 @@ class User extends Authenticatable
     }
 
     /**
+     * All financial payment records for this user.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Test attempts by this user.
      */
     public function testAttempts(): HasMany

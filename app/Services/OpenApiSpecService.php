@@ -15,10 +15,10 @@ class OpenApiSpecService
                 'title' => 'Vidya Mission Educational Platform API',
                 'version' => '1.0.0',
                 'description' => "Complete REST API documentation for the Vidya Mission e-learning platform.\n\n"
-                    . "Supports educational content management for **Classes 1 through 10** aligned with the West Bengal Board of Secondary Education (WBBSE) curriculum, including Bengali, English, Mathematics, Environmental Studies/Science, History, Geography, Physical Science, and Life Science.\n\n"
-                    . "### Authentication\n"
-                    . "Protected routes require a Bearer token via Laravel Sanctum. Obtain a token from `/api/auth/login` or `/api/auth/verify-otp` and supply it in the `Authorization` header:\n"
-                    . "```\nAuthorization: Bearer <sanctum_token>\n```",
+                    ."Supports educational content management for **Classes 1 through 10** aligned with the West Bengal Board of Secondary Education (WBBSE) curriculum, including Bengali, English, Mathematics, Environmental Studies/Science, History, Geography, Physical Science, and Life Science.\n\n"
+                    ."### Authentication\n"
+                    ."Protected routes require a Bearer token via Laravel Sanctum. Obtain a token from `/api/auth/login` or `/api/auth/verify-otp` and supply it in the `Authorization` header:\n"
+                    ."```\nAuthorization: Bearer <sanctum_token>\n```",
                 'contact' => [
                     'name' => 'Vidya Mission API Support',
                     'email' => 'support@vidyamission.com',
@@ -405,7 +405,7 @@ class OpenApiSpecService
                                         'phone' => ['type' => 'string', 'example' => '9876543210'],
                                         'email' => ['type' => 'string', 'format' => 'email', 'example' => 'sourav@example.com'],
                                         'password' => ['type' => 'string', 'format' => 'password', 'example' => 'secret123'],
-                                        'class_level' => ['type' => 'integer', 'enum' => [1,2,3,4,5,6,7,8,9,10,11,12], 'example' => 10],
+                                        'class_level' => ['type' => 'integer', 'enum' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], 'example' => 10],
                                     ],
                                 ],
                             ],
@@ -1262,6 +1262,115 @@ class OpenApiSpecService
                                 ],
                             ],
                         ],
+                    ],
+                ],
+            ],
+
+            // ==========================================
+            // 9. Student - Subscriptions & Payments
+            // ==========================================
+            '/api/subscriptions' => [
+                'get' => [
+                    'tags' => ['Student - Profile & Subscriptions'],
+                    'summary' => 'List active subscription plans',
+                    'description' => 'Returns all currently available subscription plans with pricing, duration in days, and included features.',
+                    'responses' => [
+                        '200' => ['description' => 'Plans retrieved successfully'],
+                    ],
+                ],
+            ],
+            '/api/subscriptions/current' => [
+                'get' => [
+                    'tags' => ['Student - Profile & Subscriptions'],
+                    'summary' => 'Get current active subscription',
+                    'security' => [['BearerAuth' => []]],
+                    'responses' => [
+                        '200' => ['description' => 'Current subscription status retrieved'],
+                    ],
+                ],
+            ],
+            '/api/subscriptions/{id}/initiate' => [
+                'post' => [
+                    'tags' => ['Student - Profile & Subscriptions'],
+                    'summary' => 'Initiate Razorpay order for plan purchase',
+                    'security' => [['BearerAuth' => []]],
+                    'parameters' => [
+                        ['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']],
+                    ],
+                    'responses' => [
+                        '200' => ['description' => 'Razorpay order created with order_id and key_id'],
+                    ],
+                ],
+            ],
+            '/api/subscriptions/verify' => [
+                'post' => [
+                    'tags' => ['Student - Profile & Subscriptions'],
+                    'summary' => 'Verify Razorpay payment signature and activate subscription',
+                    'security' => [['BearerAuth' => []]],
+                    'requestBody' => [
+                        'required' => true,
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'required' => ['razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature'],
+                                    'properties' => [
+                                        'razorpay_order_id' => ['type' => 'string'],
+                                        'razorpay_payment_id' => ['type' => 'string'],
+                                        'razorpay_signature' => ['type' => 'string'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'responses' => [
+                        '200' => ['description' => 'Payment verified and subscription activated'],
+                        '400' => ['description' => 'Signature verification failed'],
+                    ],
+                ],
+            ],
+            '/api/subscriptions/webhook' => [
+                'post' => [
+                    'tags' => ['Student - Profile & Subscriptions'],
+                    'summary' => 'Razorpay Webhook endpoint (HMAC signature protected)',
+                    'description' => 'Receives asynchronous events such as payment.captured, payment.failed, and refund.processed from Razorpay.',
+                    'responses' => [
+                        '200' => ['description' => 'Webhook received and processed idempotently'],
+                    ],
+                ],
+            ],
+            '/api/admin/payments/dashboard' => [
+                'get' => [
+                    'tags' => ['Admin - Users & Analytics'],
+                    'summary' => 'Get admin payments dashboard KPIs',
+                    'security' => [['BearerAuth' => []]],
+                    'responses' => [
+                        '200' => ['description' => 'Revenue aggregates, captured counts, and refund totals'],
+                    ],
+                ],
+            ],
+            '/api/admin/payments/{id}/refund' => [
+                'post' => [
+                    'tags' => ['Admin - Users & Analytics'],
+                    'summary' => 'Issue a full or partial refund for a captured payment',
+                    'security' => [['BearerAuth' => []]],
+                    'requestBody' => [
+                        'required' => true,
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    'type' => 'object',
+                                    'required' => ['amount'],
+                                    'properties' => [
+                                        'amount' => ['type' => 'number', 'example' => 499.00],
+                                        'reason' => ['type' => 'string', 'example' => 'Customer requested refund'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'responses' => [
+                        '200' => ['description' => 'Refund processed via Razorpay'],
                     ],
                 ],
             ],

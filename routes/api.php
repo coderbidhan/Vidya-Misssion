@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ClassSubjectController;
 use App\Http\Controllers\Admin\LiveClassController as AdminLiveClassController;
 use App\Http\Controllers\Admin\NoteController as AdminNoteController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\PaymentManagementController;
 use App\Http\Controllers\Admin\QuestionController;
 use App\Http\Controllers\Admin\RecordedClassController as AdminRecordedClassController;
 use App\Http\Controllers\Admin\SubjectController as AdminSubjectController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Student\ChapterController;
 use App\Http\Controllers\Student\LiveClassController;
 use App\Http\Controllers\Student\NoteController;
 use App\Http\Controllers\Student\NotificationController;
+use App\Http\Controllers\Student\PaymentController;
 use App\Http\Controllers\Student\ProfileController;
 use App\Http\Controllers\Student\RecordedClassController;
 use App\Http\Controllers\Student\SubjectController;
@@ -55,6 +57,7 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::post('subscriptions/webhook', [SubscriptionController::class, 'webhook'])->name('subscriptions.webhook');
+Route::post('payments/webhook', [SubscriptionController::class, 'webhook'])->name('payments.webhook');
 
 /*
 |--------------------------------------------------------------------------
@@ -84,13 +87,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /*
     |----------------------------------------------------------------------
-    | Subscription Routes (auth required, NO trial check)
+    | Subscription & Payment Routes (auth required, NO trial check)
     |----------------------------------------------------------------------
     */
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
         Route::get('/current', [SubscriptionController::class, 'current'])->name('subscriptions.current');
         Route::post('/{id}/initiate', [SubscriptionController::class, 'initiate'])->name('subscriptions.initiate');
+        Route::post('/verify', [SubscriptionController::class, 'verify'])->name('subscriptions.verify');
+        Route::post('/failed', [SubscriptionController::class, 'failed'])->name('subscriptions.failed');
+    });
+
+    Route::prefix('payments')->group(function () {
+        Route::post('/one-time', [PaymentController::class, 'initiateOneTime'])->name('payments.one-time');
+        Route::post('/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+        Route::post('/failed', [PaymentController::class, 'failed'])->name('payments.failed');
+        Route::get('/{id}', [PaymentController::class, 'show'])->name('payments.show');
     });
 
     /*
@@ -223,6 +235,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('subscription-plans/{id}', [SubscriptionPlanController::class, 'update'])->name('admin.plans.update');
         Route::delete('subscription-plans/{id}', [SubscriptionPlanController::class, 'destroy'])->name('admin.plans.destroy');
         Route::get('user-subscriptions', [SubscriptionPlanController::class, 'userSubscriptions'])->name('admin.user-subscriptions');
+
+        // Payment Management & Monitoring
+        Route::get('payments/dashboard', [PaymentManagementController::class, 'dashboard'])->name('admin.payments.dashboard');
+        Route::get('payments', [PaymentManagementController::class, 'index'])->name('admin.payments.index');
+        Route::get('payments/webhook-events', [PaymentManagementController::class, 'webhookEvents'])->name('admin.payments.webhook-events');
+        Route::get('payments/{id}', [PaymentManagementController::class, 'show'])->name('admin.payments.show');
+        Route::post('payments/{id}/refund', [PaymentManagementController::class, 'refund'])->name('admin.payments.refund');
+        Route::post('payments/{id}/reconcile', [PaymentManagementController::class, 'reconcile'])->name('admin.payments.reconcile');
 
         // Analytics
         Route::get('analytics/overview', [AnalyticsController::class, 'overview'])->name('admin.analytics.overview');

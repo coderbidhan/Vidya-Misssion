@@ -10,6 +10,8 @@ class UserSubscription extends Model
     protected $fillable = [
         'user_id',
         'subscription_id',
+        'gateway_order_id',
+        'payment_record_id',
         'payment_id',
         'payment_gateway',
         'payment_status',
@@ -39,6 +41,14 @@ class UserSubscription extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    /**
+     * The associated payment record.
+     */
+    public function paymentRecord(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class, 'payment_record_id');
     }
 
     /**

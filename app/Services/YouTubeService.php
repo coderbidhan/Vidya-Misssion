@@ -35,6 +35,7 @@ class YouTubeService
     public static function toWatchUrl(?string $input): ?string
     {
         $id = self::extractVideoId($input);
+
         return $id ? "https://www.youtube.com/watch?v={$id}" : null;
     }
 
@@ -44,6 +45,7 @@ class YouTubeService
     public static function toEmbedUrl(?string $input): ?string
     {
         $id = self::extractVideoId($input);
+
         return $id ? "https://www.youtube.com/embed/{$id}" : null;
     }
 
@@ -53,6 +55,7 @@ class YouTubeService
     public static function toThumbnailUrl(?string $input): ?string
     {
         $id = self::extractVideoId($input);
+
         return $id ? "https://img.youtube.com/vi/{$id}/hqdefault.jpg" : null;
     }
 

@@ -35,5 +35,11 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="PAYMENT_GATEWAY" value="razorpay"/>
+        <env name="RAZORPAY_KEY_ID" value="rzp_test_phpunit_key"/>
+        <env name="RAZORPAY_KEY_SECRET" value="phpunit_secret_key_1234567890"/>
+        <env name="RAZORPAY_WEBHOOK_SECRET" value="phpunit_webhook_secret_1234567890"/>
+        <env name="RAZORPAY_CURRENCY" value="INR"/>
+        <env name="RAZORPAY_AUTO_CAPTURE" value="true"/>
     </php>
 </phpunit>

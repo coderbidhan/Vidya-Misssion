@@ -48,7 +48,7 @@ class SubscriptionPlanController extends Controller
      */
     public function userSubscriptions(Request $request): JsonResponse
     {
-        $query = UserSubscription::with(['user:id,name,email', 'subscription:id,name,price'])
+        $query = UserSubscription::with(['user:id,name,email', 'subscription:id,name,price', 'paymentRecord'])
             ->when($request->status, fn ($q) => $q->where('payment_status', $request->status))
             ->when($request->search, fn ($q) => $q->whereHas('user', fn ($uq) => $uq->where('email', 'like', '%'.$request->search.'%')))
             ->orderByDesc('created_at');

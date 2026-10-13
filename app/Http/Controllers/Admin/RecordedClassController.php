@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RecordedClassRequest;
 use App\Models\RecordedClass;
 use App\Services\GoogleDriveService;
+use App\Services\YouTubeService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -72,14 +73,14 @@ class RecordedClassController extends Controller
         $data = $request->validated();
 
         if (! empty($data['video_url'])) {
-            $ytId = \App\Services\YouTubeService::extractVideoId($data['video_url']);
+            $ytId = YouTubeService::extractVideoId($data['video_url']);
             if ($ytId) {
                 $data['video_url'] = "https://www.youtube.com/watch?v={$ytId}";
                 $data['gdrive_file_id'] = $data['gdrive_file_id'] ?? $ytId;
                 $data['gdrive_embed_url'] = "https://www.youtube.com/embed/{$ytId}";
             }
         } elseif (! empty($data['gdrive_file_id'])) {
-            $ytId = \App\Services\YouTubeService::extractVideoId($data['gdrive_file_id']);
+            $ytId = YouTubeService::extractVideoId($data['gdrive_file_id']);
             if ($ytId) {
                 $data['video_url'] = "https://www.youtube.com/watch?v={$ytId}";
                 $data['gdrive_embed_url'] = "https://www.youtube.com/embed/{$ytId}";
@@ -100,7 +101,7 @@ class RecordedClassController extends Controller
 
         if (array_key_exists('video_url', $data)) {
             if (! empty($data['video_url'])) {
-                $ytId = \App\Services\YouTubeService::extractVideoId($data['video_url']);
+                $ytId = YouTubeService::extractVideoId($data['video_url']);
                 if ($ytId) {
                     $data['video_url'] = "https://www.youtube.com/watch?v={$ytId}";
                     $data['gdrive_file_id'] = $ytId;
@@ -114,7 +115,7 @@ class RecordedClassController extends Controller
         }
 
         if (isset($data['gdrive_file_id']) && ! isset($data['gdrive_embed_url'])) {
-            $ytId = \App\Services\YouTubeService::extractVideoId($data['gdrive_file_id']);
+            $ytId = YouTubeService::extractVideoId($data['gdrive_file_id']);
             if ($ytId) {
                 $data['video_url'] = "https://www.youtube.com/watch?v={$ytId}";
                 $data['gdrive_embed_url'] = "https://www.youtube.com/embed/{$ytId}";
