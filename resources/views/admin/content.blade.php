@@ -91,12 +91,13 @@
                         <th>Title & Description</th>
                         <th>Class & Chapter</th>
                         <th>Teacher</th>
+                        <th>Video</th>
                         <th>Duration</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="recordedBody"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div></td></tr></tbody>
+                <tbody id="recordedBody"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div></td></tr></tbody>
             </table>
         </div>
         <div class="pagination" id="recPagination" style="display:none">
@@ -257,9 +258,12 @@
                 <input type="text" class="form-control" id="rc-title" placeholder="Class title">
             </div>
             <div class="form-group">
-                <label class="form-label">Google Drive File ID / Video ID *</label>
-                <input type="text" class="form-control" id="rc-gdrive" placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74">
-                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem">ℹ️ Stored securely and automatically converted to an embed player URL.</div>
+                <label class="form-label">YouTube Video URL / ID *</label>
+                <input type="text" class="form-control" id="rc-video-url"
+                       placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or video ID"
+                       oninput="onVideoUrlInput('rc')">
+                <div id="rc-video-feedback" style="font-size:0.75rem;margin-top:0.35rem;display:none"></div>
+                <div id="rc-video-preview" style="display:none;margin-top:0.65rem" class="video-preview-wrap"></div>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -268,7 +272,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Thumbnail URL</label>
-                    <input type="url" class="form-control" id="rc-thumb" placeholder="https://…">
+                    <input type="url" class="form-control" id="rc-thumb" placeholder="https://… (auto-generated if empty)">
                 </div>
             </div>
             <div class="form-group">
@@ -297,8 +301,12 @@
                 <input type="text" class="form-control" id="edit-rc-title">
             </div>
             <div class="form-group">
-                <label class="form-label">Google Drive File ID / Video ID *</label>
-                <input type="text" class="form-control" id="edit-rc-gdrive">
+                <label class="form-label">YouTube Video URL / ID</label>
+                <input type="text" class="form-control" id="edit-rc-video-url"
+                       placeholder="e.g. https://www.youtube.com/watch?v=... (clear to remove)"
+                       oninput="onVideoUrlInput('edit-rc')">
+                <div id="edit-rc-video-feedback" style="font-size:0.75rem;margin-top:0.35rem;display:none"></div>
+                <div id="edit-rc-video-preview" style="display:none;margin-top:0.65rem" class="video-preview-wrap"></div>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -315,7 +323,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Thumbnail URL</label>
-                <input type="url" class="form-control" id="edit-rc-thumb">
+                <input type="url" class="form-control" id="edit-rc-thumb" placeholder="https://…">
             </div>
             <div class="form-group">
                 <label class="form-label">Description</label>
@@ -325,6 +333,19 @@
         <div class="modal-footer">
             <button class="btn btn-outline" onclick="closeModal('editRecordedModal')">Cancel</button>
             <button class="btn btn-primary" onclick="updateRecorded()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Video Player Modal -->
+<div class="modal-backdrop" id="videoPreviewModal">
+    <div class="modal" style="max-width:680px">
+        <div class="modal-header">
+            <span class="modal-title" id="videoPreviewTitle">🎬 Video Preview</span>
+            <button class="modal-close" onclick="closeVideoModal()">×</button>
+        </div>
+        <div class="modal-body" style="padding:1rem">
+            <div class="video-preview-wrap" id="videoPreviewContainer"></div>
         </div>
     </div>
 </div>
@@ -682,7 +703,7 @@ async function loadRecorded(page = 1) {
     if (status !== '') query += `&is_active=${status}`;
     if (search) query += `&search=${encodeURIComponent(search)}`;
 
-    document.getElementById('recordedBody').innerHTML = '<tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div></td></tr>';
+    document.getElementById('recordedBody').innerHTML = '<tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div></td></tr>';
 
     try {
         const res = await api('GET', `/admin/recorded-classes${query}`);
@@ -690,7 +711,11 @@ async function loadRecorded(page = 1) {
         const meta = res.meta || {};
         document.getElementById('recCountBadge').textContent = meta.total || data.length;
 
-        document.getElementById('recordedBody').innerHTML = data.length ? data.map(c => `
+        document.getElementById('recordedBody').innerHTML = data.length ? data.map(c => {
+            const vidUrl = c.video_url || (c.gdrive_file_id && c.gdrive_file_id.length === 11 ? `https://www.youtube.com/watch?v=${c.gdrive_file_id}` : (c.gdrive_file_id || ''));
+            const ytId = extractYtId(vidUrl || c.gdrive_embed_url || c.gdrive_file_id);
+
+            return `
             <tr>
                 <td>
                     <div style="font-weight:600;font-size:0.875rem">${escapeHtml(c.title)}</div>
@@ -701,6 +726,14 @@ async function loadRecorded(page = 1) {
                     <span class="badge badge-purple" style="font-size:0.65rem">Class ${c.chapter?.class_level || 'All'}</span>
                 </td>
                 <td>${escapeHtml(c.teacher?.name || '—')}</td>
+                <td>
+                    ${ytId ? `
+                        <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap">
+                            <button type="button" class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:0.25rem 0.55rem" onclick="previewVideo('${ytId}', '${escapeHtml(c.title).replace(/'/g, "\\'")}')">▶ Watch</button>
+                            <a href="https://www.youtube.com/watch?v=${ytId}" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:0.25rem 0.45rem" title="Open YouTube link">↗</a>
+                        </div>
+                    ` : '<span style="color:var(--text-muted);font-size:0.75rem">—</span>'}
+                </td>
                 <td>${c.duration_seconds ? Math.floor(c.duration_seconds/60) + 'm' : '—'}</td>
                 <td>
                     <button class="badge ${c.is_active ? 'badge-success' : 'badge-neutral'}" style="cursor:pointer;border:none" onclick="toggleRecordedStatus(${c.id}, ${!c.is_active})">
@@ -713,11 +746,61 @@ async function loadRecorded(page = 1) {
                         <button class="btn btn-danger btn-sm" onclick="deleteRecorded(${c.id})">🗑</button>
                     </div>
                 </td>
-            </tr>
-        `).join('') : '<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--text-muted)">No recorded classes found matching criteria.</td></tr>';
+            </tr>`;
+        }).join('') : '<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:var(--text-muted)">No recorded classes found matching criteria.</td></tr>';
 
         renderPagination('recPagination', 'recPagInfo', 'recPagBtns', meta, loadRecorded);
     } catch(e) { toast(e.message, 'error'); }
+}
+
+function extractYtId(url) {
+    if (!url) return null;
+    url = String(url).trim();
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    const match = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+    return match ? match[1] : null;
+}
+
+function onVideoUrlInput(prefix) {
+    const inputEl = document.getElementById(prefix + '-video-url');
+    const feedback = document.getElementById(prefix + '-video-feedback');
+    const preview = document.getElementById(prefix + '-video-preview');
+    if (!inputEl || !feedback || !preview) return;
+
+    const val = inputEl.value.trim();
+    if (!val) {
+        feedback.style.display = 'none';
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+        return;
+    }
+
+    const ytId = extractYtId(val);
+    if (ytId) {
+        feedback.style.display = 'block';
+        feedback.style.color = 'var(--success)';
+        feedback.innerHTML = `✓ Valid YouTube Video (ID: <code>${ytId}</code>)`;
+        preview.style.display = 'block';
+        preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
+    } else {
+        feedback.style.display = 'block';
+        feedback.style.color = 'var(--danger)';
+        feedback.innerHTML = `⚠️ Invalid YouTube URL. Enter watch link, youtu.be, or 11-char ID.`;
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+    }
+}
+
+function previewVideo(ytId, title) {
+    document.getElementById('videoPreviewTitle').textContent = `🎬 ${title}`;
+    document.getElementById('videoPreviewContainer').innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+    openModal('videoPreviewModal');
+}
+
+function closeVideoModal() {
+    closeModal('videoPreviewModal');
+    const container = document.getElementById('videoPreviewContainer');
+    if (container) container.innerHTML = '';
 }
 
 async function openEditRecorded(id) {
@@ -726,7 +809,9 @@ async function openEditRecorded(id) {
         const c = res.data;
         document.getElementById('edit-rc-id').value = c.id;
         document.getElementById('edit-rc-title').value = c.title;
-        document.getElementById('edit-rc-gdrive').value = c.gdrive_file_id;
+        const vidUrl = c.video_url || (c.gdrive_file_id ? (c.gdrive_file_id.length === 11 ? 'https://www.youtube.com/watch?v=' + c.gdrive_file_id : c.gdrive_file_id) : '');
+        document.getElementById('edit-rc-video-url').value = vidUrl;
+        onVideoUrlInput('edit-rc');
         document.getElementById('edit-rc-duration').value = c.duration_seconds || '';
         document.getElementById('edit-rc-thumb').value = c.thumbnail_url || '';
         document.getElementById('edit-rc-desc').value = c.description || '';
@@ -737,13 +822,15 @@ async function openEditRecorded(id) {
 
 async function updateRecorded() {
     const id = document.getElementById('edit-rc-id').value;
+    const videoUrl = document.getElementById('edit-rc-video-url').value.trim();
+
     try {
         await api('PUT', `/admin/recorded-classes/${id}`, {
-            title: document.getElementById('edit-rc-title').value,
-            gdrive_file_id: document.getElementById('edit-rc-gdrive').value,
+            title: document.getElementById('edit-rc-title').value.trim(),
+            video_url: videoUrl || null,
             duration_seconds: parseInt(document.getElementById('edit-rc-duration').value) || null,
-            thumbnail_url: document.getElementById('edit-rc-thumb').value || null,
-            description: document.getElementById('edit-rc-desc').value || null,
+            thumbnail_url: document.getElementById('edit-rc-thumb').value.trim() || null,
+            description: document.getElementById('edit-rc-desc').value.trim() || null,
             is_active: document.getElementById('edit-rc-active').value === '1',
         });
         toast('Recorded class updated successfully!', 'success');
@@ -761,18 +848,27 @@ async function toggleRecordedStatus(id, newStatus) {
 }
 
 async function createRecorded() {
+    const videoUrl = document.getElementById('rc-video-url').value.trim();
+    if (!videoUrl) {
+        toast('Please enter a YouTube video URL or ID.', 'error');
+        return;
+    }
+
     try {
         await api('POST', '/admin/recorded-classes', {
             chapter_id: parseInt(document.getElementById('rc-chapter').value),
             teacher_id: parseInt(document.getElementById('rc-teacher').value),
-            title: document.getElementById('rc-title').value,
-            gdrive_file_id: document.getElementById('rc-gdrive').value,
+            title: document.getElementById('rc-title').value.trim(),
+            video_url: videoUrl,
             duration_seconds: parseInt(document.getElementById('rc-duration').value) || null,
-            thumbnail_url: document.getElementById('rc-thumb').value || null,
-            description: document.getElementById('rc-desc').value || null,
+            thumbnail_url: document.getElementById('rc-thumb').value.trim() || null,
+            description: document.getElementById('rc-desc').value.trim() || null,
         });
         toast('Recorded class added successfully!', 'success');
         closeModal('addRecordedModal');
+        document.getElementById('rc-video-url').value = '';
+        document.getElementById('rc-video-preview').style.display = 'none';
+        document.getElementById('rc-video-preview').innerHTML = '';
         loadRecorded(1);
     } catch(e) { toast(e.message, 'error'); }
 }

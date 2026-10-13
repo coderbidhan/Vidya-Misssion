@@ -27,7 +27,7 @@ class RecordedClassController extends Controller
         $classes = $chapter->recordedClasses()
             ->where('is_active', true)
             ->with(['teacher:id,name'])
-            ->get(['id', 'chapter_id', 'teacher_id', 'title', 'description', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds'])
+            ->get(['id', 'chapter_id', 'teacher_id', 'title', 'description', 'video_url', 'gdrive_file_id', 'gdrive_embed_url', 'thumbnail_url', 'duration_seconds'])
             ->map(function ($class) use ($hasAccess) {
                 return [
                     'id' => $class->id,
@@ -35,6 +35,7 @@ class RecordedClassController extends Controller
                     'teacher_id' => $class->teacher_id,
                     'title' => $class->title,
                     'description' => $class->description,
+                    'video_url' => $hasAccess ? $class->video_url : null,
                     'gdrive_embed_url' => $hasAccess ? $class->gdrive_embed_url : null,
                     'thumbnail_url' => $class->thumbnail_url,
                     'duration_seconds' => $class->duration_seconds,
@@ -64,6 +65,7 @@ class RecordedClassController extends Controller
             'id' => $class->id,
             'title' => $class->title,
             'description' => $class->description,
+            'video_url' => $hasAccess ? $class->video_url : null,
             'gdrive_embed_url' => $hasAccess ? $class->gdrive_embed_url : null,
             'thumbnail_url' => $class->thumbnail_url,
             'duration_seconds' => $class->duration_seconds,

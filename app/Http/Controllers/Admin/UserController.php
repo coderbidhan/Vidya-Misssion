@@ -27,9 +27,40 @@ class UserController extends Controller
     public function students(Request $request): JsonResponse
     {
         $query = User::where('role', 'student')
-            ->with('studentProfile')
-            ->when($request->search, fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')
-                ->orWhere('email', 'like', '%'.$request->search.'%'));
+            ->with(['studentProfile', 'userSubscriptions' => function ($q) {
+                $q->where('payment_status', 'completed')
+                    ->where('starts_at', '<=', now())
+                    ->where('ends_at', '>=', now())
+                    ->with('subscription');
+            }])
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%')
+                        ->orWhere('mobile', 'like', '%'.$search.'%')
+                        ->orWhereHas('studentProfile', function ($sp) use ($search) {
+                            $sp->where('name', 'like', '%'.$search.'%')
+                                ->orWhere('school_name', 'like', '%'.$search.'%')
+                                ->orWhere('district', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->when($request->filled('status'), function ($q) use ($request) {
+                $status = $request->status;
+                if ($status === 'active') {
+                    $q->whereNotNull('trial_ends_at')->where('trial_ends_at', '>=', now());
+                } elseif ($status === 'expired') {
+                    $q->whereNotNull('trial_ends_at')->where('trial_ends_at', '<', now());
+                } elseif ($status === 'subscribed') {
+                    $q->whereHas('userSubscriptions', function ($sq) {
+                        $sq->where('payment_status', 'completed')
+                            ->where('starts_at', '<=', now())
+                            ->where('ends_at', '>=', now());
+                    });
+                }
+            })
+            ->orderByDesc('created_at');
 
         return $this->paginatedResponse($query->paginate(20));
     }

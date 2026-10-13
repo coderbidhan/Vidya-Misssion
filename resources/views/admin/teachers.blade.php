@@ -58,6 +58,7 @@
                         <label class="form-label">Mobile</label>
                         <input type="text" class="form-control" id="t-mobile" placeholder="+91 98765 43210">
                     </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Password *</label>
@@ -105,7 +106,8 @@
                     <label class="form-label">Mobile</label>
                     <input type="text" class="form-control" id="et-mobile">
                 </div>
-                <div class="form-row">
+            </div>
+            <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Password</label>
                         <input type="text" class="form-control" id="et-password" placeholder="Leave blank to keep unchanged">

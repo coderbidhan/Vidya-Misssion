@@ -106,20 +106,21 @@ window._pageInit = async function() {
         ).join('') || '<tr><td colspan="2" style="text-align:center;padding:2rem;color:var(--text-muted)">No data yet</td></tr>';
 
         // Tests
-        document.getElementById('testRows').innerHTML = (tests.data?.data || []).slice(0,5).map(t =>
+        const testList = Array.isArray(tests.data) ? tests.data : (Array.isArray(tests.data?.data) ? tests.data.data : []);
+        document.getElementById('testRows').innerHTML = testList.slice(0,5).map(t =>
             `<tr><td>${t.title}</td><td><span class="badge badge-neutral">${t.attempts}</span></td>
             <td><span class="badge ${parseFloat(t.pass_rate)>60?'badge-success':'badge-warning'}">${t.pass_rate}</span></td></tr>`
         ).join('') || '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted)">No tests yet</td></tr>';
 
         // Recent students
-        const rows = students.data?.data || [];
+        const rows = Array.isArray(students.data) ? students.data : (Array.isArray(students.data?.data) ? students.data.data : []);
         document.getElementById('recentStudents').innerHTML = rows.length ? rows.slice(0,8).map((s, i) =>
             `<tr>
                 <td style="color:var(--text-muted)">#${i+1}</td>
-                <td><strong>${s.name || '—'}</strong></td>
-                <td style="color:var(--text-muted)">${s.email}</td>
+                <td><strong>${s.name || s.student_profile?.name || '—'}</strong></td>
+                <td style="color:var(--text-muted)">${s.email || s.mobile || '—'}</td>
                 <td>${s.student_profile?.district || '—'}</td>
-                <td>${s.student_profile?.class || '—'}</td>
+                <td>${s.student_profile?.class ? 'Class ' + s.student_profile.class : '—'}</td>
                 <td>${s.trial_ends_at ? (new Date(s.trial_ends_at) > new Date()
                     ? '<span class="badge badge-success">✓ Active</span>'
                     : '<span class="badge badge-danger">Expired</span>')

@@ -107,7 +107,12 @@ trait SeedsCurriculumContent
         // 4. Recorded Video Class
         if (! empty($chapterData['recorded_class'])) {
             $rcData = $chapterData['recorded_class'];
-            $videoId = $rcData['video_id'] ?? 'dQw4w9WgXcQ';
+            $videoUrl = $rcData['video_url'] ?? null;
+            $videoId = $rcData['video_id'] ?? ($videoUrl ? \App\Services\YouTubeService::extractVideoId($videoUrl) : null);
+            if (empty($videoUrl) && $videoId) {
+                $videoUrl = "https://www.youtube.com/watch?v={$videoId}";
+            }
+
             RecordedClass::updateOrCreate(
                 [
                     'chapter_id' => $chapter->id,
@@ -116,10 +121,11 @@ trait SeedsCurriculumContent
                 [
                     'teacher_id' => $teacher->id,
                     'description' => $rcData['description'] ?? 'Video explanation covering chapter concepts and exercises.',
+                    'video_url' => $videoUrl,
                     'gdrive_file_id' => $videoId,
-                    'gdrive_embed_url' => "https://www.youtube.com/embed/{$videoId}",
+                    'gdrive_embed_url' => $videoId ? "https://www.youtube.com/embed/{$videoId}" : null,
                     'duration_seconds' => $rcData['duration_seconds'] ?? 1800,
-                    'thumbnail_url' => $rcData['thumbnail_url'] ?? null,
+                    'thumbnail_url' => $rcData['thumbnail_url'] ?? ($videoId ? \App\Services\YouTubeService::toThumbnailUrl($videoId) : null),
                     'is_active' => true,
                 ]
             );

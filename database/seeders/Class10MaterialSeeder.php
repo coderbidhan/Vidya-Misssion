@@ -49,13 +49,14 @@ class Class10MaterialSeeder extends Seeder
                         'recorded_classes' => [
                             'title' => 'Understanding Gyananjon Character Arc',
                             'description' => 'A video lecture focusing on Tapati\'s character development.',
-                            'youtube_video_id' => 'dQw4w9WgXcQ',
-                            'youtube_embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                            'youtube_video_id' => 'E7wJTI-1dqQ',
+                            'youtube_embed_url' => 'https://www.youtube.com/embed/E7wJTI-1dqQ',
+                            'video_url' => 'https://www.youtube.com/watch?v=E7wJTI-1dqQ',
                         ],
                         'live_classes' => [
                             'title' => 'Bengali Gyananjon Doubt Clearing Session',
                             'description' => 'Interactive session resolving questions from previous year papers.',
-                            'youtube_live_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                            'youtube_live_url' => 'https://www.youtube.com/watch?v=E7wJTI-1dqQ',
                         ],
                         'test' => [
                             'title' => 'Gyananjon MCQ Practice Test',
@@ -406,6 +407,8 @@ class Class10MaterialSeeder extends Seeder
                 );
 
                 // Create Recorded Classes
+                $ytId = $chData['recorded_classes']['youtube_video_id'] ?? null;
+                $videoUrl = $chData['recorded_classes']['video_url'] ?? ($ytId ? "https://www.youtube.com/watch?v={$ytId}" : null);
                 RecordedClass::updateOrCreate(
                     [
                         'chapter_id' => $chapter->id,
@@ -414,9 +417,11 @@ class Class10MaterialSeeder extends Seeder
                     [
                         'teacher_id' => $teacher->id,
                         'description' => $chData['recorded_classes']['description'],
-                        'gdrive_file_id' => $chData['recorded_classes']['youtube_video_id'],
-                        'gdrive_embed_url' => $chData['recorded_classes']['youtube_embed_url'],
+                        'video_url' => $videoUrl,
+                        'gdrive_file_id' => $ytId,
+                        'gdrive_embed_url' => $chData['recorded_classes']['youtube_embed_url'] ?? ($ytId ? "https://www.youtube.com/embed/{$ytId}" : null),
                         'duration_seconds' => 1800,
+                        'thumbnail_url' => $ytId ? \App\Services\YouTubeService::toThumbnailUrl($ytId) : null,
                         'is_active' => true,
                     ]
                 );

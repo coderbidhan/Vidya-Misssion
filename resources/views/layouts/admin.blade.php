@@ -217,32 +217,69 @@ textarea.form-control{resize:vertical;min-height:90px;}
 .tab-panel.active{display:block;}
 
 /* ══════════════════════ RESPONSIVE ══════════════════════ */
+.video-preview-wrap{position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000;}
+.video-preview-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);z-index:95;}
+.sidebar-overlay.active{display:block;}
+
 @media(max-width:900px){
-    .sidebar{transform:translateX(-100%);}
-    .sidebar.open{transform:none;box-shadow:0 0 0 100vw rgba(0,0,0,0.5);}
-    .main{margin-left:0;}
+    .sidebar{transform:translateX(-100%);z-index:100;}
+    .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,0.15);}
+    .main{margin-left:0;width:100%;min-width:0;}
     .form-row{grid-template-columns:1fr;}
-    #sidebar-toggle{display:flex !important;}
-    .stats-grid{grid-template-columns:1fr 1fr;}
+    #sidebar-toggle{display:inline-flex !important;}
+    .stats-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+    .content{padding:1rem;overflow-x:hidden;}
+    .mobile-sidebar-close{display:inline-flex !important;}
 }
-@media(max-width:600px){
+
+@media(max-width:680px){
+    .stats-grid{grid-template-columns:1fr 1fr;}
+    .topbar{padding:0.75rem 1rem;height:auto;min-height:var(--topbar-height);flex-wrap:wrap;gap:0.5rem;}
+    .topbar-subtitle{display:none;}
+    .topbar-actions{width:100%;justify-content:flex-end;gap:0.5rem;flex-wrap:wrap;}
+    .card-header{flex-direction:column;align-items:stretch;gap:0.75rem;}
+    .card-header > div{width:100%;justify-content:space-between;flex-wrap:wrap;}
+    .card-body{padding:1rem;}
+    .search-bar{flex-direction:column;align-items:stretch;gap:0.5rem;}
+    .search-input-wrap{width:100%;min-width:100%;}
+    .filter-select{width:100%;}
+    .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:2px;}
+    .tab-btn{padding:0.6rem 0.85rem;font-size:0.8rem;}
+    .modal-backdrop{padding:0.5rem;}
+    .modal{max-height:calc(100vh - 1rem);border-radius:14px;}
+    .modal-header{padding:1rem 1.15rem;}
+    .modal-body{padding:1rem 1.15rem;}
+    .modal-footer{padding:0.85rem 1.15rem;flex-direction:column-reverse;gap:0.5rem;}
+    .modal-footer .btn{width:100%;justify-content:center;}
+    .pagination{flex-direction:column;gap:0.75rem;align-items:center;padding:0.85rem 1rem;}
+    .pagination-btns{flex-wrap:wrap;justify-content:center;}
+}
+
+@media(max-width:420px){
     .stats-grid{grid-template-columns:1fr;}
-    .topbar{padding:0 1rem;}
-    .card-header{flex-direction:column;align-items:flex-start;}
+    .topbar-title{font-size:0.95rem;}
+    th, td{padding:0.65rem 0.75rem;font-size:0.8rem;}
 }
 </style>
 </head>
 <body>
 
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-    <a href="{{ route('admin.dashboard') }}" class="sidebar-logo">
-        <div class="sidebar-logo-icon">V</div>
-        <div>
-            <div class="sidebar-logo-text">Vidya<span>Mission</span></div>
-            <div class="sidebar-logo-badge">ADMIN</div>
-        </div>
-    </a>
+    <div class="sidebar-logo">
+        <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;flex:1">
+            <div class="sidebar-logo-icon">V</div>
+            <div>
+                <div class="sidebar-logo-text">Vidya<span>Mission</span></div>
+                <div class="sidebar-logo-badge">ADMIN</div>
+            </div>
+        </a>
+        <button type="button" class="mobile-sidebar-close" onclick="toggleSidebar()" style="display:none;background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--text-muted);padding:0.25rem" title="Close menu">✕</button>
+    </div>
 
     <nav class="sidebar-nav">
         <div class="nav-section-label">Overview</div>
@@ -367,13 +404,20 @@ window.addEventListener('keydown', e => {
 });
 
 // ── Sidebar toggle ───────────────────────────────────────────
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebar-overlay');
+    sb.classList.toggle('open');
+    if (ov) ov.classList.toggle('active', sb.classList.contains('open'));
+}
 
 // Close sidebar on click outside
 document.addEventListener('click', e => {
     const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebar-overlay');
     if (sb.classList.contains('open') && !sb.contains(e.target) && !e.target.closest('#sidebar-toggle')) {
         sb.classList.remove('open');
+        if (ov) ov.classList.remove('active');
     }
 });
 

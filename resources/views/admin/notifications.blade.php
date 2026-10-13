@@ -4,7 +4,19 @@
 @section('page-subtitle','Send broadcast notifications to students')
 
 @section('content')
-<div style="display:grid;grid-template-columns:1fr 360px;gap:1.25rem">
+<style>
+.notif-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.25rem;
+}
+@media (max-width: 900px) {
+    .notif-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+<div class="notif-grid">
     <!-- Compose -->
     <div class="card">
         <div class="card-header">

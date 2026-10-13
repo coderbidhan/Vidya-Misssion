@@ -190,7 +190,7 @@ async function deletePlan(id) {
 async function loadPurchases(page = 1) {
     const status = document.getElementById('purchaseFilter').value;
     const res = await api('GET', `/admin/user-subscriptions?page=${page}&status=${status}`);
-    const data = res.data?.data || [];
+    const data = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
     const statusColors = { completed:'badge-success', pending:'badge-warning', failed:'badge-danger' };
     document.getElementById('purchasesBody').innerHTML = data.length ? data.map(p => `
         <tr>
