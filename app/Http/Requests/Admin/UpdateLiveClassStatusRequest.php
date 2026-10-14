@@ -15,6 +15,9 @@ class UpdateLiveClassStatusRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:scheduled,live,completed,cancelled'],
+            'recording_url' => ['nullable', 'url', 'max:1000'],
+            'cancellation_reason' => ['nullable', 'string', 'max:500'],
+            'is_published' => ['nullable', 'boolean'],
         ];
     }
 }

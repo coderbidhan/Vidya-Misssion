@@ -26,13 +26,42 @@ class User extends Authenticatable
         'is_active',
         'trial_starts_at',
         'trial_ends_at',
+        'current_device_token_id',
+        'plain_password',
     ];
 
     protected $hidden = [
         'password',
+        'plain_password',
         'otp',
         'remember_token',
     ];
+
+    /**
+     * Mutator to automatically encrypt viewable plain_password using application APP_KEY.
+     */
+    public function setPlainPasswordAttribute(?string $value): void
+    {
+        $this->attributes['plain_password'] = ($value !== null && $value !== '')
+            ? \Illuminate\Support\Facades\Crypt::encryptString($value)
+            : null;
+    }
+
+    /**
+     * Accessor to decrypt the viewable plain_password.
+     */
+    public function getPlainPasswordAttribute(): ?string
+    {
+        if (empty($this->attributes['plain_password'])) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($this->attributes['plain_password']);
+        } catch (\Throwable) {
+            return $this->attributes['plain_password'];
+        }
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -47,6 +76,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'trial_starts_at' => 'datetime',
             'trial_ends_at' => 'datetime',
+            'current_device_token_id' => 'integer',
         ];
     }
 

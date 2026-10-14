@@ -39,4 +39,12 @@ class Subject extends Model
         return $this->belongsToMany(User::class, 'teacher_subjects', 'subject_id', 'teacher_id')
             ->withTimestamps();
     }
+
+    /**
+     * Live classes belonging to this subject.
+     */
+    public function liveClasses(): HasMany
+    {
+        return $this->hasMany(LiveClass::class);
+    }
 }

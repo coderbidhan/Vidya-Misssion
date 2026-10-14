@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\DeviceSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,7 +12,7 @@ class AdminWebController extends Controller
 {
     private string $apiBase;
 
-    public function __construct()
+    public function __construct(private readonly DeviceSessionService $deviceSessionService)
     {
         $this->apiBase = '/api';
     }
@@ -44,8 +45,8 @@ class AdminWebController extends Controller
                 ->with('error', 'Invalid email or password.');
         }
 
-        // Issue a Sanctum token for API calls from the panel
-        $token = $user->createToken('admin-panel', ['*'], now()->addDays(365))->plainTextToken;
+        // Issue a single-device Sanctum token for API calls from the panel
+        $token = $this->deviceSessionService->createDeviceSession($user, 'admin-panel', now()->addDays(365))->plainTextToken;
 
         session([
             'admin_token' => $token,
@@ -63,9 +64,11 @@ class AdminWebController extends Controller
     /** POST /admin/logout */
     public function logout()
     {
-        // Revoke the Sanctum token
+        // Revoke the active Sanctum session
         $user = User::find(session('admin_user.id'));
-        $user?->tokens()->where('name', 'admin-panel')->delete();
+        if ($user) {
+            $this->deviceSessionService->invalidateCurrentSession($user);
+        }
 
         session()->forget(['admin_token', 'admin_user']);
 
@@ -102,6 +105,11 @@ class AdminWebController extends Controller
         return $this->adminView('admin.teachers');
     }
 
+    public function classes()
+    {
+        return $this->adminView('admin.classes');
+    }
+
     public function subjects()
     {
         return $this->adminView('admin.subjects');
@@ -110,6 +118,11 @@ class AdminWebController extends Controller
     public function content()
     {
         return $this->adminView('admin.content');
+    }
+
+    public function liveClasses()
+    {
+        return $this->adminView('admin.live_classes');
     }
 
     public function tests()

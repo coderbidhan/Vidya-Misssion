@@ -18,3 +18,6 @@ Schedule::job(new SendLiveClassReminder)->everyMinute()->name('live-class-remind
 
 // Reconcile pending payments and refunds against Razorpay every 15 minutes
 Schedule::command('payment:reconcile')->everyFifteenMinutes()->name('payment-reconcile')->withoutOverlapping();
+
+// Manage live class lifecycle and dispatch student notifications every 5 minutes
+Schedule::command('live-classes:lifecycle')->everyFiveMinutes()->name('live-classes-lifecycle')->withoutOverlapping();

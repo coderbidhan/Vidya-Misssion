@@ -133,7 +133,10 @@
                 <span class="card-title">Scheduled Live Classes</span>
                 <span class="badge badge-purple" id="liveCountBadge">0</span>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="openModal('addLiveModal')">＋ Schedule Class</button>
+            <div style="display:flex;gap:0.4rem;align-items:center">
+                <a href="{{ route('admin.live-classes') }}" class="btn btn-outline btn-sm">📡 Open Live Classes Hub →</a>
+                <button class="btn btn-primary btn-sm" onclick="openModal('addLiveModal')">＋ Schedule Class</button>
+            </div>
         </div>
         <div class="table-wrapper">
             <table>

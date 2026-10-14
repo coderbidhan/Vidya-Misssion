@@ -24,19 +24,17 @@
 
     {{-- ════ PANEL 1: CLASSES ════ --}}
     <div class="card curriculum-panel mobile-active" id="panel-1" style="overflow:hidden;display:flex;flex-direction:column">
-        <div class="card-header" style="padding:1rem">
+        <div class="card-header" style="padding:0.75rem 1rem;display:flex;align-items:center;justify-content:space-between">
             <span class="card-title" style="font-size:0.8rem">🏫 Classes</span>
+            <div style="display:flex;gap:0.3rem">
+                <button class="btn btn-primary btn-sm" style="font-size:0.7rem;padding:0.22rem 0.5rem" onclick="openQuickAddClassModal()" title="Add New Class">＋ Class</button>
+                <a href="{{ route('admin.classes') }}" class="btn btn-outline btn-sm" style="font-size:0.7rem;padding:0.22rem 0.45rem" title="Manage All Classes">⚙️</a>
+            </div>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:0.5rem">
-            @foreach(range(1, 10) as $c)
-            <button
-                id="cls-btn-{{ $c }}"
-                onclick="selectClass({{ $c }})"
-                style="width:100%;text-align:left;padding:0.65rem 0.875rem;border-radius:10px;border:none;background:transparent;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:600;color:#374151;transition:all 0.18s;display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem">
-                <span style="width:20px;height:20px;border-radius:5px;background:rgba(109,74,255,0.08);color:#6D4AFF;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center">{{ $c }}</span>
-                Class {{ $c }}
-            </button>
-            @endforeach
+        <div style="flex:1;overflow-y:auto;padding:0.5rem" id="classesListPanel">
+            <div style="text-align:center;padding:1.5rem;color:var(--text-muted)">
+                <div class="spinner-sm"></div>
+            </div>
         </div>
     </div>
 
@@ -90,6 +88,45 @@
 {{-- ═══════════════════════════════════════════════
      MODALS
 ═══════════════════════════════════════════════ --}}
+
+{{-- Quick Add Class Modal --}}
+<div class="modal-backdrop" id="quickAddClassModal">
+    <div class="modal" style="max-width:440px">
+        <div class="modal-header">
+            <span class="modal-title">🏫 Add New Academic Class</span>
+            <button class="modal-close" onclick="closeModal('quickAddClassModal')">×</button>
+        </div>
+        <form onsubmit="submitQuickAddClass(event)">
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:0.85rem">
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Class Level / Number *</label>
+                    <input type="number" class="search-input" id="quickClassLevel" min="1" max="50" placeholder="e.g. 11" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Class Name *</label>
+                    <input type="text" class="search-input" id="quickClassName" placeholder="e.g. Class 11" required>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Education Board</label>
+                    <input type="text" class="search-input" id="quickClassBoard" value="WBBSE" placeholder="e.g. WBBSE, WBCHSE, CBSE">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Stage</label>
+                    <select class="search-input" id="quickClassStage">
+                        <option value="Primary">Primary (1–4)</option>
+                        <option value="Upper Primary">Upper Primary (5–8)</option>
+                        <option value="Secondary">Secondary (9–10)</option>
+                        <option value="Higher Secondary">Higher Secondary (11–12)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('quickAddClassModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm" id="btnQuickAddClass">Create & Select</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {{-- Assign subject to class --}}
 <div class="modal-backdrop" id="assignModal">
@@ -620,7 +657,104 @@ async function deleteChapter(id) {
     } catch(e) { toast(e.message, 'error'); }
 }
 
-// ─── Auto-select Class 8 on load ──────────────────────────────
-window._pageInit = () => selectClass(9); // default to class 9
+// ─── Dynamic Classes in Panel 1 ───────────────────────────────
+let dynamicClasses = [];
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+async function loadDynamicClasses(targetLevel = null) {
+    try {
+        const res = await api('GET', '/admin/classes');
+        dynamicClasses = Array.isArray(res.data) ? res.data : [];
+        renderDynamicClassList();
+    } catch(e) {
+        renderFallbackClassList();
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const qLevel = targetLevel || parseInt(urlParams.get('class_level')) || 9;
+    selectClass(qLevel);
+}
+
+function renderDynamicClassList() {
+    const container = document.getElementById('classesListPanel');
+    if (!container) return;
+    if (!dynamicClasses.length) {
+        renderFallbackClassList();
+        return;
+    }
+
+    container.innerHTML = dynamicClasses.map(c => `
+        <button
+            id="cls-btn-${c.class_level}"
+            onclick="selectClass(${c.class_level})"
+            style="width:100%;text-align:left;padding:0.65rem 0.875rem;border-radius:10px;border:none;background:transparent;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:600;color:#374151;transition:all 0.18s;display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem">
+            <span style="width:20px;height:20px;border-radius:5px;background:rgba(109,74,255,0.08);color:#6D4AFF;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center">${c.class_level}</span>
+            ${escapeHtml(c.name)}
+        </button>
+    `).join('');
+}
+
+function renderFallbackClassList() {
+    const container = document.getElementById('classesListPanel');
+    if (!container) return;
+    let html = '';
+    for (let c = 1; c <= 12; c++) {
+        html += `
+            <button
+                id="cls-btn-${c}"
+                onclick="selectClass(${c})"
+                style="width:100%;text-align:left;padding:0.65rem 0.875rem;border-radius:10px;border:none;background:transparent;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:600;color:#374151;transition:all 0.18s;display:flex;align-items:center;gap:0.5rem;margin-bottom:0.15rem">
+                <span style="width:20px;height:20px;border-radius:5px;background:rgba(109,74,255,0.08);color:#6D4AFF;font-size:0.65rem;font-weight:800;display:flex;align-items:center;justify-content:center">${c}</span>
+                Class ${c}
+            </button>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+function openQuickAddClassModal() {
+    const maxL = dynamicClasses.reduce((max, c) => Math.max(max, c.class_level || 0), 0);
+    const nextL = maxL > 0 ? maxL + 1 : 1;
+    document.getElementById('quickClassLevel').value = nextL;
+    document.getElementById('quickClassName').value = `Class ${nextL}`;
+    document.getElementById('quickClassBoard').value = nextL >= 11 ? 'WBCHSE' : 'WBBSE';
+    document.getElementById('quickClassStage').value = nextL >= 11 ? 'Higher Secondary' : (nextL >= 9 ? 'Secondary' : 'Upper Primary');
+    openModal('quickAddClassModal');
+}
+
+async function submitQuickAddClass(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnQuickAddClass');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    const level = parseInt(document.getElementById('quickClassLevel').value);
+    const payload = {
+        class_level: level,
+        name: document.getElementById('quickClassName').value.trim(),
+        board: document.getElementById('quickClassBoard').value.trim() || 'WBBSE',
+        stage: document.getElementById('quickClassStage').value,
+        is_active: true
+    };
+
+    try {
+        await api('POST', '/admin/classes', payload);
+        toast(`Class ${level} created!`, 'success');
+        closeModal('quickAddClassModal');
+        await loadDynamicClasses(level);
+    } catch(err) {
+        toast('Failed to create class: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create & Select';
+    }
+}
+
+// ─── Initial Page Load ─────────────────────────────────────────
+window._pageInit = () => loadDynamicClasses();
 </script>
 @endsection

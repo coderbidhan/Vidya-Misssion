@@ -8,9 +8,11 @@ use App\Http\Requests\Auth\StudentLoginRequest;
 use App\Http\Requests\Auth\StudentRegisterRequest;
 use App\Models\StudentProfile;
 use App\Models\User;
+use App\Services\DeviceSessionService;
 use App\Services\TrialService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +21,10 @@ class StudentAuthController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly TrialService $trialService) {}
+    public function __construct(
+        private readonly TrialService $trialService,
+        private readonly DeviceSessionService $deviceSessionService
+    ) {}
 
     /**
      * Register a new student and start their free trial.
@@ -35,6 +40,7 @@ class StudentAuthController extends Controller
                     'name' => $request->name,
                     'mobile' => $request->mobile,
                     'password' => Hash::make($request->password),
+                    'plain_password' => $request->password,
                     'role' => 'student',
                     'is_verified' => true,
                     'is_active' => true,
@@ -53,10 +59,10 @@ class StudentAuthController extends Controller
                 $this->trialService->startTrial($user);
                 $user->refresh();
 
-                // 4. Generate token (expires in 30 days for student role)
+                // 4. Generate token with single-device session tracking (expires in 30 days for student role)
                 $tokenExpiryDays = config('vidyamission.token_expiry.student', 30);
                 $expiresAt = now()->addDays($tokenExpiryDays);
-                $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
+                $token = $this->deviceSessionService->createDeviceSession($user, 'api-token', $expiresAt)->plainTextToken;
 
                 return $this->successResponse([
                     'token' => $token,
@@ -73,6 +79,7 @@ class StudentAuthController extends Controller
 
     /**
      * Authenticate a student using mobile and password.
+     * Enforces single-device session policy upon successful authentication.
      *
      * POST /api/auth/login
      */
@@ -90,16 +97,36 @@ class StudentAuthController extends Controller
             return $this->errorResponse('Your account has been deactivated. Contact support.', 403, 'ACCOUNT_DEACTIVATED');
         }
 
-        // Generate token
+        // Generate token and atomically supersede any previous device session
         $tokenExpiryDays = config('vidyamission.token_expiry.student', 30);
         $expiresAt = now()->addDays($tokenExpiryDays);
-        $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
+        $token = $this->deviceSessionService->createDeviceSession($user, 'api-token', $expiresAt)->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
             'user' => $user->only(['id', 'name', 'mobile', 'role', 'trial_starts_at', 'trial_ends_at']),
             'profile' => $user->studentProfile,
         ], 'Login successful.');
+    }
+
+    /**
+     * Refresh the active API token for the currently authenticated device.
+     *
+     * POST /api/auth/refresh-token
+     */
+    public function refreshToken(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $tokenExpiryDays = config('vidyamission.token_expiry.'.$user->role, 30);
+        $expiresAt = now()->addDays($tokenExpiryDays);
+        $token = $this->deviceSessionService->createDeviceSession($user, 'api-token', $expiresAt)->plainTextToken;
+
+        return $this->successResponse([
+            'token' => $token,
+            'user' => $user->only(['id', 'name', 'mobile', 'role', 'trial_starts_at', 'trial_ends_at']),
+        ], 'Token refreshed successfully.');
     }
 
     /**
@@ -117,6 +144,7 @@ class StudentAuthController extends Controller
 
         $user->update([
             'password' => Hash::make($request->password),
+            'plain_password' => $request->password,
         ]);
 
         return $this->successResponse(null, 'Password updated successfully.');

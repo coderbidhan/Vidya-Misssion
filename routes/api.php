@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicClassController;
-use App\Http\Controllers\ApiDocController;
+use App\Http\Controllers\Admin\AcademicClassController as AdminAcademicClassController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ChapterController as AdminChapterController;
 use App\Http\Controllers\Admin\ClassSubjectController;
@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\SubjectController as AdminSubjectController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\TestController as AdminTestController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ApiDocController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\StudentAuthController;
 use App\Http\Controllers\Student\ChapterController;
@@ -47,8 +48,9 @@ Route::prefix('auth')->group(function () {
     Route::post('verify-otp', [OtpController::class, 'verifyOtp'])->name('auth.verify-otp');
     Route::post('register', [StudentAuthController::class, 'register'])->name('auth.register');
     Route::post('login', [StudentAuthController::class, 'login'])->name('auth.login');
-    Route::post('forgot-password', [StudentAuthController::class, 'forgotPassword'])->middleware('auth:sanctum')->name('auth.forgot-password');
-    Route::post('logout', [OtpController::class, 'logout'])->middleware('auth:sanctum')->name('auth.logout');
+    Route::post('refresh-token', [StudentAuthController::class, 'refreshToken'])->middleware(['auth:sanctum', 'single_device'])->name('auth.refresh-token');
+    Route::post('forgot-password', [StudentAuthController::class, 'forgotPassword'])->middleware(['auth:sanctum', 'single_device'])->name('auth.forgot-password');
+    Route::post('logout', [OtpController::class, 'logout'])->middleware(['auth:sanctum', 'single_device'])->name('auth.logout');
 });
 
 /*
@@ -72,7 +74,7 @@ Route::get('classes/{classLevel}/subjects', [AcademicClassController::class, 'su
 | Authenticated Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'single_device'])->group(function () {
 
     /*
     |----------------------------------------------------------------------
@@ -134,6 +136,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Live Classes
     Route::get('chapters/{id}/live-classes', [LiveClassController::class, 'byChapter'])->name('live-classes.by-chapter');
+    Route::get('live-classes', [LiveClassController::class, 'index'])->name('live-classes.index');
+    Route::get('live-classes/now', [LiveClassController::class, 'liveNow'])->name('live-classes.now');
+    Route::get('live-classes/{id}', [LiveClassController::class, 'show'])->name('live-classes.show');
 
     // Notes
     Route::get('chapters/{id}/notes', [NoteController::class, 'byChapter'])->name('notes.by-chapter');
@@ -168,13 +173,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('admins/{id}', [UserController::class, 'deleteAdmin'])->name('admin.admins.delete');
 
         Route::get('students', [UserController::class, 'students'])->name('admin.students');
+        Route::post('students', [UserController::class, 'createStudent'])->name('admin.students.create');
         Route::put('students/{id}', [UserController::class, 'updateStudent'])->name('admin.students.update');
+        Route::post('students/{id}/password', [UserController::class, 'updateStudentPassword'])->name('admin.students.password');
         Route::post('students/{id}/grant-access', [UserController::class, 'grantFreeAccess'])->name('admin.students.grant-access');
         Route::get('teachers', [UserController::class, 'teachers'])->name('admin.teachers');
         Route::post('teachers', [UserController::class, 'createTeacher'])->name('admin.teachers.create');
         Route::put('teachers/{id}', [UserController::class, 'updateTeacher'])->name('admin.teachers.update');
         Route::delete('teachers/{id}', [UserController::class, 'deleteTeacher'])->name('admin.teachers.delete');
         Route::post('teachers/{id}/assign-subjects', [UserController::class, 'assignSubjects'])->name('admin.teachers.assign-subjects');
+        Route::post('users/{id}/revoke-session', [UserController::class, 'revokeSession'])->name('admin.users.revoke-session');
+
+        // Academic Classes
+        Route::get('classes', [AdminAcademicClassController::class, 'index'])->name('admin.classes.index');
+        Route::post('classes', [AdminAcademicClassController::class, 'store'])->name('admin.classes.store');
+        Route::get('classes/{id}', [AdminAcademicClassController::class, 'show'])->name('admin.classes.show');
+        Route::put('classes/{id}', [AdminAcademicClassController::class, 'update'])->name('admin.classes.update');
+        Route::delete('classes/{id}', [AdminAcademicClassController::class, 'destroy'])->name('admin.classes.destroy');
+        Route::post('classes/{id}/toggle-status', [AdminAcademicClassController::class, 'toggleStatus'])->name('admin.classes.toggle-status');
 
         // Subjects
         Route::get('subjects', [AdminSubjectController::class, 'index'])->name('admin.subjects.index');
@@ -204,11 +220,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('recorded-classes/{id}', [AdminRecordedClassController::class, 'destroy'])->name('admin.recorded-classes.destroy');
 
         // Live Classes
+        Route::get('live-classes/dashboard-stats', [AdminLiveClassController::class, 'dashboardStats'])->name('admin.live-classes.dashboard-stats');
         Route::get('live-classes', [AdminLiveClassController::class, 'index'])->name('admin.live-classes.index');
         Route::get('live-classes/{id}', [AdminLiveClassController::class, 'show'])->name('admin.live-classes.show');
         Route::post('live-classes', [AdminLiveClassController::class, 'store'])->name('admin.live-classes.store');
         Route::put('live-classes/{id}', [AdminLiveClassController::class, 'update'])->name('admin.live-classes.update');
         Route::patch('live-classes/{id}/status', [AdminLiveClassController::class, 'updateStatus'])->name('admin.live-classes.status');
+        Route::patch('live-classes/{id}/reschedule', [AdminLiveClassController::class, 'reschedule'])->name('admin.live-classes.reschedule');
+        Route::patch('live-classes/{id}/cancel', [AdminLiveClassController::class, 'cancel'])->name('admin.live-classes.cancel');
         Route::delete('live-classes/{id}', [AdminLiveClassController::class, 'destroy'])->name('admin.live-classes.destroy');
 
         // Notes

@@ -292,6 +292,7 @@
             <span class="pill active">Class 9–10 Secondary (Madhyamik)</span>
             <span class="pill">88 Chapters</span>
             <span class="pill">101 Videos</span>
+            <span class="pill active">101 Live Classes</span>
             <span class="pill">101 Notes</span>
             <span class="pill">101 Tests</span>
             <span class="pill">203 MCQs</span>

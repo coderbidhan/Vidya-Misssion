@@ -31,8 +31,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('admins', [AdminWebController::class, 'admins'])->name('admins.creation');
         Route::get('students', [AdminWebController::class, 'students'])->name('students.creation');
         Route::get('teachers', [AdminWebController::class, 'teachers'])->name('teachers.creation');
+        Route::get('classes', [AdminWebController::class, 'classes'])->name('classes');
         Route::get('subjects', [AdminWebController::class, 'subjects'])->name('subjects');
         Route::get('content', [AdminWebController::class, 'content'])->name('content');
+        Route::get('live-classes', [AdminWebController::class, 'liveClasses'])->name('live-classes');
         Route::get('tests', [AdminWebController::class, 'tests'])->name('tests');
         Route::get('subscriptions', [AdminWebController::class, 'subscriptions'])->name('subscriptions');
         Route::get('payments', [AdminWebController::class, 'payments'])->name('payments');

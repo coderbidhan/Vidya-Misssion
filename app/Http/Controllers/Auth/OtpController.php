@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\SendOtpRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Models\User;
+use App\Services\DeviceSessionService;
 use App\Services\OtpService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,10 @@ class OtpController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private readonly OtpService $otpService) {}
+    public function __construct(
+        private readonly OtpService $otpService,
+        private readonly DeviceSessionService $deviceSessionService
+    ) {}
 
     /**
      * Send a 6-digit OTP to the provided email address.
@@ -47,7 +51,7 @@ class OtpController extends Controller
     }
 
     /**
-     * Verify the OTP and issue a Sanctum API token.
+     * Verify the OTP and issue a Sanctum API token enforcing single-device policy.
      *
      * POST /api/auth/verify-otp
      */
@@ -72,7 +76,7 @@ class OtpController extends Controller
         $tokenExpiryDays = config('vidyamission.token_expiry.'.$user->role, 30);
         $expiresAt = now()->addDays($tokenExpiryDays);
 
-        $token = $user->createToken('api-token', ['*'], $expiresAt)->plainTextToken;
+        $token = $this->deviceSessionService->createDeviceSession($user, 'api-token', $expiresAt)->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
@@ -82,13 +86,16 @@ class OtpController extends Controller
     }
 
     /**
-     * Revoke the current API token (logout).
+     * Revoke the current API token (logout) and clear active session.
      *
      * POST /api/auth/logout
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->deviceSessionService->invalidateCurrentSession(
+            $request->user(),
+            $request->user()->currentAccessToken()?->id
+        );
 
         return $this->successResponse(null, 'Logged out successfully.');
     }

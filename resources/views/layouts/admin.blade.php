@@ -80,9 +80,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .sidebar-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;color:#fff;flex-shrink:0;}
 .sidebar-user-info{flex:1;min-width:0;}
 .sidebar-user-name{font-size:0.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sidebar-user-role{font-size:0.68rem;color:var(--text-muted);}
-.logout-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0.25rem;font-size:1rem;transition:color 0.2s;line-height:1;}
-.logout-btn:hover{color:var(--danger);}
+.logout-btn{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);color:var(--danger);cursor:pointer;padding:0.35rem;border-radius:8px;transition:all 0.2s;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:34px;height:34px;box-sizing:border-box;}
+.logout-btn:hover{background:var(--danger);color:#fff;border-color:var(--danger);transform:translateY(-1px);}
+.logout-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;display:block;flex-shrink:0;}
+.mobile-topbar-logout{display:none;}
 
 /* ══════════════════════ MAIN ══════════════════════ */
 .main{margin-left:var(--sidebar-width);flex:1;display:flex;flex-direction:column;min-height:100vh;}
@@ -231,6 +232,7 @@ textarea.form-control{resize:vertical;min-height:90px;}
     .stats-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
     .content{padding:1rem;overflow-x:hidden;}
     .mobile-sidebar-close{display:inline-flex !important;}
+    .mobile-topbar-logout{display:inline-flex !important;}
 }
 
 @media(max-width:680px){
@@ -299,11 +301,17 @@ textarea.form-control{resize:vertical;min-height:90px;}
         </a>
 
         <div class="nav-section-label">Curriculum</div>
-        <a href="{{ route('admin.subjects') }}" class="nav-item {{ request()->routeIs('admin.subjects') ? 'active' : '' }}">
-            <span class="nav-icon">📚</span> Classes & Subjects
+        <a href="{{ route('admin.classes') }}" class="nav-item {{ request()->routeIs('admin.classes*') ? 'active' : '' }}">
+            <span class="nav-icon">🏫</span> Class Management
+        </a>
+        <a href="{{ route('admin.subjects') }}" class="nav-item {{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
+            <span class="nav-icon">📚</span> Subjects & Curriculum
         </a>
         <a href="{{ route('admin.content') }}" class="nav-item {{ request()->routeIs('admin.content') ? 'active' : '' }}">
             <span class="nav-icon">🎬</span> Content
+        </a>
+        <a href="{{ route('admin.live-classes') }}" class="nav-item {{ request()->routeIs('admin.live-classes*') ? 'active' : '' }}">
+            <span class="nav-icon">📡</span> Live Classes
         </a>
         <a href="{{ route('admin.tests') }}" class="nav-item {{ request()->routeIs('admin.tests') ? 'active' : '' }}">
             <span class="nav-icon">🧪</span> Tests & Questions
@@ -333,9 +341,15 @@ textarea.form-control{resize:vertical;min-height:90px;}
                 <div class="sidebar-user-name">{{ $adminUser['name'] ?? 'Admin' }}</div>
                 <div class="sidebar-user-role">Super Admin</div>
             </div>
-            <form method="POST" action="{{ route('admin.logout') }}" style="margin:0">
+            <form method="POST" action="{{ route('admin.logout') }}" style="margin:0;flex-shrink:0">
                 @csrf
-                <button type="submit" class="logout-btn" title="Logout">⏻</button>
+                <button type="submit" class="logout-btn" title="Logout" aria-label="Logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
             </form>
         </div>
     </div>
@@ -352,6 +366,16 @@ textarea.form-control{resize:vertical;min-height:90px;}
         </div>
         <div class="topbar-actions">
             @yield('topbar-actions')
+            <form method="POST" action="{{ route('admin.logout') }}" class="mobile-topbar-logout" style="margin:0">
+                @csrf
+                <button type="submit" class="logout-btn" title="Logout" aria-label="Logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -382,7 +406,14 @@ async function api(method, path, body = null) {
     if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
     const res  = await fetch(API + path, opts);
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.message || 'API error');
+    if (!res.ok) {
+        if (res.status === 401 && json.code === 'SESSION_REPLACED') {
+            alert(json.message || 'You have been logged out because your account was signed in on another device.');
+            window.location.href = '/admin/login';
+            return;
+        }
+        throw new Error(json.message || 'API error');
+    }
     return json;
 }
 

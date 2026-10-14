@@ -13,6 +13,7 @@ use App\Models\Subscription;
 use App\Models\TeacherProfile;
 use App\Models\User;
 use App\Models\UserSubscription;
+use App\Services\DeviceSessionService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -67,11 +68,64 @@ class UserController extends Controller
             })
             ->orderByDesc('created_at');
 
-        return $this->paginatedResponse($query->paginate(20));
+        $paginator = $query->paginate(20);
+        $paginator->getCollection()->transform(function ($student) {
+            $student->account_password = $student->plain_password;
+            return $student;
+        });
+
+        return $this->paginatedResponse($paginator);
     }
 
     /**
-     * Update a student account (e.g. status).
+     * Create a new student from the admin panel.
+     *
+     * POST /api/admin/students
+     */
+    public function createStudent(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'mobile' => ['required', 'string', 'max:20', 'unique:users,mobile'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
+            'class' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'school_name' => ['nullable', 'string', 'max:255'],
+            'district' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $student = DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'mobile' => $data['mobile'],
+                'email' => $data['email'] ?? null,
+                'password' => Hash::make($data['password']),
+                'plain_password' => $data['password'],
+                'role' => 'student',
+                'is_verified' => true,
+                'is_active' => true,
+            ]);
+
+            \App\Models\StudentProfile::create([
+                'user_id' => $user->id,
+                'name' => $data['name'],
+                'class' => $data['class'] ?? null,
+                'school_name' => $data['school_name'] ?? null,
+                'district' => $data['district'] ?? null,
+            ]);
+
+            app(\App\Services\TrialService::class)->startTrial($user);
+
+            return $user->load('studentProfile');
+        });
+
+        $student->account_password = $data['password'];
+
+        return $this->successResponse($student, 'Student account created successfully.', 201);
+    }
+
+    /**
+     * Update a student account (e.g. status or details).
      *
      * PUT /api/admin/students/{id}
      */
@@ -83,7 +137,38 @@ class UserController extends Controller
             $student->update(['is_active' => $request->boolean('is_active')]);
         }
 
-        return $this->successResponse($student, 'Student updated.');
+        if ($request->filled('password')) {
+            $student->update([
+                'password' => Hash::make($request->password),
+                'plain_password' => $request->password,
+            ]);
+            $student->account_password = $request->password;
+        }
+
+        return $this->successResponse($student, 'Student updated successfully.');
+    }
+
+    /**
+     * Set or reset a student password from the admin panel.
+     *
+     * POST /api/admin/students/{id}/password
+     */
+    public function updateStudentPassword(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $student = User::where('role', 'student')->findOrFail($id);
+        $student->update([
+            'password' => Hash::make($request->password),
+            'plain_password' => $request->password,
+        ]);
+
+        return $this->successResponse([
+            'id' => $student->id,
+            'account_password' => $request->password,
+        ], 'Student password updated successfully.');
     }
 
     /**
@@ -146,7 +231,7 @@ class UserController extends Controller
                 'user_id' => $student->id,
                 'subscription_id' => $subscription->id,
                 'gateway_order_id' => null,
-                'payment_id' => 'admin_free_' . uniqid(),
+                'payment_id' => 'admin_free_'.uniqid(),
                 'payment_gateway' => 'admin_grant',
                 'payment_status' => 'completed',
                 'starts_at' => $startsAt,
@@ -159,13 +244,13 @@ class UserController extends Controller
                 'payable_id' => $userSub->id,
                 'purpose' => 'subscription_purchase',
                 'gateway' => 'admin_grant',
-                'gateway_payment_id' => 'admin_grant_' . uniqid(),
+                'gateway_payment_id' => 'admin_grant_'.uniqid(),
                 'amount' => 0,
                 'currency' => 'INR',
                 'status' => 'captured',
                 'gateway_status' => 'captured',
                 'payment_method' => 'admin_complimentary',
-                'receipt' => 'adm_' . strtoupper(Str::random(8)),
+                'receipt' => 'adm_'.strtoupper(Str::random(8)),
                 'is_captured' => true,
                 'captured_at' => now(),
                 'metadata' => [
@@ -371,5 +456,18 @@ class UserController extends Controller
         $admin->update(['is_active' => false]);
 
         return $this->successResponse(null, 'Admin deactivated.');
+    }
+
+    /**
+     * Revoke a user's active device session (admin action).
+     *
+     * POST /api/admin/users/{id}/revoke-session
+     */
+    public function revokeSession(int $id, DeviceSessionService $deviceSessionService): JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $deviceSessionService->revokeAllSessions($user);
+
+        return $this->successResponse(null, "Active session for user {$user->name} revoked.");
     }
 }
