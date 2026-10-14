@@ -4,7 +4,6 @@
 @section('page-subtitle','Manage registered students and user credentials')
 @section('topbar-actions')
     <span id="studentCount" class="badge badge-purple" style="font-size:0.8rem;padding:0.4rem 0.875rem">Loading…</span>
-    <button class="btn btn-primary btn-sm" onclick="openCreateStudentModal()">＋ Add Student</button>
 @endsection
 
 @section('content')
@@ -61,109 +60,6 @@
         <div class="modal-body" id="studentModalBody" style="min-height:200px;display:flex;align-items:center;justify-content:center">
             <div class="spinner-sm"></div>
         </div>
-    </div>
-</div>
-
-<!-- Set / Reset Student Password Modal -->
-<div class="modal-backdrop" id="resetPasswordModal">
-    <div class="modal" style="max-width:450px">
-        <div class="modal-header">
-            <span class="modal-title">🔑 Set / Reset Student Password</span>
-            <button class="modal-close" onclick="closeModal('resetPasswordModal')">×</button>
-        </div>
-        <form id="resetPasswordForm" onsubmit="submitResetPassword(event)">
-            <input type="hidden" id="resetStudentId">
-            <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem">
-                <div style="background:var(--bg-surface);padding:0.75rem 1rem;border-radius:10px;border:1px solid var(--border-light)">
-                    <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;font-weight:700">Student Account</div>
-                    <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-top:0.2rem" id="resetStudentName">—</div>
-                    <div style="font-size:0.8rem;color:var(--text-muted)" id="resetStudentMobile">—</div>
-                </div>
-
-                <div class="form-group" style="margin-bottom:0">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-                        <label class="form-label" style="margin-bottom:0">New Account Password *</label>
-                        <button type="button" class="btn btn-outline btn-sm" style="font-size:0.68rem;padding:0.18rem 0.5rem" onclick="generateRandomPassword('resetPasswordInput')">⚡ Generate Random</button>
-                    </div>
-                    <div style="position:relative;display:flex;align-items:center">
-                        <input type="text" class="search-input" id="resetPasswordInput" placeholder="Enter password (min 6 chars)" minlength="6" required style="padding-right:2.5rem;font-family:monospace;letter-spacing:0.05em">
-                    </div>
-                    <span style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;display:block">
-                        This password will be securely encrypted and viewable / copyable by admins whenever needed.
-                    </span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('resetPasswordModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="btnSubmitResetPassword">Save & Copy Password</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Create New Student Modal -->
-<div class="modal-backdrop" id="createStudentModal">
-    <div class="modal" style="max-width:500px">
-        <div class="modal-header">
-            <span class="modal-title">👨‍🎓 Add New Student</span>
-            <button class="modal-close" onclick="closeModal('createStudentModal')">×</button>
-        </div>
-        <form id="createStudentForm" onsubmit="submitCreateStudent(event)">
-            <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem">
-                <div class="form-row">
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">Student Name *</label>
-                        <input type="text" class="search-input" id="newStudentName" placeholder="Full name" required>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">Mobile Number *</label>
-                        <input type="tel" class="search-input" id="newStudentMobile" placeholder="10-digit mobile" required>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">Email (Optional)</label>
-                        <input type="email" class="search-input" id="newStudentEmail" placeholder="student@example.com">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">Class / Grade *</label>
-                        <select class="search-input" id="newStudentClass" required>
-                            <option value="">Select Class</option>
-                            @foreach(range(1, 12) as $c)
-                            <option value="{{ $c }}">Class {{ $c }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom:0">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-                        <label class="form-label" style="margin-bottom:0">User Account Password *</label>
-                        <button type="button" class="btn btn-outline btn-sm" style="font-size:0.68rem;padding:0.18rem 0.5rem" onclick="generateRandomPassword('newStudentPassword')">⚡ Generate</button>
-                    </div>
-                    <input type="text" class="search-input" id="newStudentPassword" placeholder="Set password (min 6 chars)" minlength="6" required style="font-family:monospace;letter-spacing:0.05em">
-                    <span style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;display:block">
-                        Password is saved viewable and copyable for admin support.
-                    </span>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">School Name</label>
-                        <input type="text" class="search-input" id="newStudentSchool" placeholder="School name">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                        <label class="form-label">District</label>
-                        <input type="text" class="search-input" id="newStudentDistrict" placeholder="District">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('createStudentModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="btnSubmitCreateStudent">Create Student Account</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -270,28 +166,20 @@ async function loadStudents(page = 1) {
                 </td>
                 <td>${s.student_profile?.class ? 'Class ' + s.student_profile.class : '—'}</td>
                 
-                <!-- PASSWORD VIEW & COPY CELL -->
+                <!-- PASSWORD VIEW & COPY CELL (VIEW & COPY ONLY) -->
                 <td>
                     ${hasPassword ? `
-                        <div style="display:inline-flex;align-items:center;gap:0.35rem;background:var(--bg-surface);padding:0.22rem 0.5rem;border-radius:8px;border:1px solid var(--border-light)">
-                            <code id="pwd-val-${s.id}" style="font-family:monospace;font-size:0.8rem;letter-spacing:${isVisible ? '0.04em' : '0.12em'};color:var(--text);font-weight:600;min-width:64px;display:inline-block">${isVisible ? escapeHtml(s.account_password) : '••••••••'}</code>
-                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.35rem;font-size:0.72rem;border:none;line-height:1" onclick="togglePasswordVisibility(${s.id})" title="${isVisible ? 'Hide password' : 'View password'}">
+                        <div style="display:inline-flex;align-items:center;gap:0.38rem;background:var(--bg-surface);padding:0.25rem 0.55rem;border-radius:8px;border:1px solid var(--border-light)">
+                            <code id="pwd-val-${s.id}" style="font-family:monospace;font-size:0.82rem;letter-spacing:${isVisible ? '0.04em' : '0.14em'};color:var(--text);font-weight:600;min-width:68px;display:inline-block">${isVisible ? escapeHtml(s.account_password) : '••••••••'}</code>
+                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.2rem 0.4rem;font-size:0.75rem;border:none;line-height:1;cursor:pointer" onclick="togglePasswordVisibility(${s.id})" title="${isVisible ? 'Hide password' : 'View password'}">
                                 <span id="pwd-eye-${s.id}">${isVisible ? '🙈' : '👁️'}</span>
                             </button>
-                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.35rem;font-size:0.72rem;border:none;line-height:1" onclick="copyStudentPassword(${s.id})" title="Copy password">
+                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.2rem 0.4rem;font-size:0.75rem;border:none;line-height:1;cursor:pointer" onclick="copyStudentPassword(${s.id})" title="Copy password to clipboard">
                                 📋
-                            </button>
-                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.35rem;font-size:0.72rem;border:none;line-height:1;color:var(--primary)" onclick="openResetPasswordModal(${s.id})" title="Set / Reset password">
-                                🔑
                             </button>
                         </div>
                     ` : `
-                        <div style="display:inline-flex;align-items:center;gap:0.35rem">
-                            <span class="badge badge-neutral" style="font-size:0.68rem" title="Password was hashed before this feature">Hashed</span>
-                            <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.45rem;font-size:0.7rem;color:var(--primary);border-color:rgba(109,74,255,0.3)" onclick="openResetPasswordModal(${s.id})" title="Set viewable password">
-                                🔑 Set
-                            </button>
-                        </div>
+                        <span style="color:var(--text-muted);font-size:0.8rem">—</span>
                     `}
                 </td>
 
@@ -366,114 +254,6 @@ async function copyStudentPassword(id) {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        toast(`Password for ${s.name || 'student'} copied to clipboard!`, 'success');
-    }
-}
-
-function generateRandomPassword(targetInputId) {
-    const adjectives = ['Alpha', 'Smart', 'Bright', 'Vidya', 'Scholar', 'Future', 'Star'];
-    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const num = Math.floor(1000 + Math.random() * 9000);
-    const pass = `${adj}@${num}`;
-    const el = document.getElementById(targetInputId);
-    if (el) el.value = pass;
-}
-
-// ── SET / RESET PASSWORD MODAL ──────────────────────────────
-function openResetPasswordModal(id) {
-    const s = cachedStudents.find(item => item.id === id);
-    if (!s) return;
-
-    document.getElementById('resetStudentId').value = s.id;
-    document.getElementById('resetStudentName').textContent = s.name || s.student_profile?.name || ('Student #' + s.id);
-    document.getElementById('resetStudentMobile').textContent = `Mobile: ${s.mobile || '—'} · User ID: #${s.id}`;
-    document.getElementById('resetPasswordInput').value = '';
-    generateRandomPassword('resetPasswordInput');
-    openModal('resetPasswordModal');
-}
-
-async function submitResetPassword(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSubmitResetPassword');
-    const id = document.getElementById('resetStudentId').value;
-    const newPass = document.getElementById('resetPasswordInput').value.trim();
-
-    if (!newPass || newPass.length < 6) {
-        toast('Password must be at least 6 characters.', 'error');
-        return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Saving…';
-
-    try {
-        const res = await api('POST', `/admin/students/${id}/password`, { password: newPass });
-        
-        // Update local cached student
-        const s = cachedStudents.find(item => item.id == id);
-        if (s) {
-            s.account_password = newPass;
-            visiblePasswordIds.add(s.id);
-        }
-
-        // Copy new password to clipboard automatically
-        try {
-            await navigator.clipboard.writeText(newPass);
-            toast('Password saved and copied to clipboard!', 'success');
-        } catch(e) {
-            toast('Password saved successfully!', 'success');
-        }
-
-        closeModal('resetPasswordModal');
-        loadStudents(currentPage);
-    } catch(err) {
-        toast('Failed to update password: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save & Copy Password';
-    }
-}
-
-// ── CREATE NEW STUDENT ──────────────────────────────────────
-function openCreateStudentModal() {
-    document.getElementById('createStudentForm').reset();
-    generateRandomPassword('newStudentPassword');
-    openModal('createStudentModal');
-}
-
-async function submitCreateStudent(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSubmitCreateStudent');
-    btn.disabled = true;
-    btn.textContent = 'Creating…';
-
-    const payload = {
-        name: document.getElementById('newStudentName').value.trim(),
-        mobile: document.getElementById('newStudentMobile').value.trim(),
-        email: document.getElementById('newStudentEmail').value.trim() || undefined,
-        class: parseInt(document.getElementById('newStudentClass').value) || undefined,
-        password: document.getElementById('newStudentPassword').value.trim(),
-        school_name: document.getElementById('newStudentSchool').value.trim() || undefined,
-        district: document.getElementById('newStudentDistrict').value.trim() || undefined
-    };
-
-    try {
-        const res = await api('POST', '/admin/students', payload);
-        toast(`Student ${payload.name} created! Password: ${payload.password}`, 'success');
-        
-        // Copy to clipboard
-        try {
-            await navigator.clipboard.writeText(payload.password);
-            toast('Password copied to clipboard!', 'info');
-        } catch(e) {}
-
-        closeModal('createStudentModal');
-        loadStudents(1);
-    } catch(err) {
-        toast('Failed to create student: ' + err.message, 'error');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Create Student Account';
     }
 }
 
@@ -532,15 +312,11 @@ function viewStudent(id) {
                             ${s.account_password ? `
                                 <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
                                     <code id="modal-pwd-${s.id}" style="font-size:0.85rem;font-weight:700;letter-spacing:0.06em;background:#fff;padding:0.25rem 0.5rem;border-radius:6px;border:1px solid var(--border-light)">••••••••</code>
-                                    <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.45rem;font-size:0.7rem" onclick="toggleModalPassword(${s.id})">👁 View</button>
-                                    <button type="button" class="btn btn-primary btn-sm" style="padding:0.18rem 0.5rem;font-size:0.7rem" onclick="copyStudentPassword(${s.id})">📋 Copy</button>
-                                    <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.45rem;font-size:0.7rem;color:var(--primary)" onclick="closeModal('studentModal');openResetPasswordModal(${s.id})">🔑 Reset</button>
+                                    <button type="button" class="btn btn-outline btn-sm" style="padding:0.18rem 0.45rem;font-size:0.7rem;cursor:pointer" onclick="toggleModalPassword(${s.id})">👁 View</button>
+                                    <button type="button" class="btn btn-primary btn-sm" style="padding:0.18rem 0.5rem;font-size:0.7rem;cursor:pointer" onclick="copyStudentPassword(${s.id})">📋 Copy</button>
                                 </div>
                             ` : `
-                                <div style="display:flex;align-items:center;gap:0.4rem">
-                                    <span class="badge badge-neutral" style="font-size:0.7rem">Hashed</span>
-                                    <button type="button" class="btn btn-primary btn-sm" style="padding:0.18rem 0.5rem;font-size:0.7rem" onclick="closeModal('studentModal');openResetPasswordModal(${s.id})">🔑 Set Password</button>
-                                </div>
+                                <span style="color:var(--text-muted);font-size:0.82rem">—</span>
                             `}
                         </div>
                     </div>

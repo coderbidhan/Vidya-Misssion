@@ -145,15 +145,14 @@ class DeviceSessionService
      */
     public function isTokenSuperseded(int $tokenId): bool
     {
-        if (Cache::get('superseded_token:'.$tokenId) === true) {
-            return true;
+        $cached = Cache::get('superseded_token:'.$tokenId);
+        if ($cached !== null) {
+            return (bool) $cached;
         }
 
         $exists = SupersededDeviceToken::where('token_id', $tokenId)->exists();
 
-        if ($exists) {
-            Cache::put('superseded_token:'.$tokenId, true, now()->addDays(7));
-        }
+        Cache::put('superseded_token:'.$tokenId, $exists, now()->addDays(7));
 
         return $exists;
     }

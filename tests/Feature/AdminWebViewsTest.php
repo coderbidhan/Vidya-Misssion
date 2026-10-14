@@ -59,7 +59,7 @@ class AdminWebViewsTest extends TestCase
         $response->assertOk()
             ->assertSee('Students')
             ->assertSee('Account Password')
-            ->assertSee('Add Student');
+            ->assertSee('copyStudentPassword');
     }
 
     public function test_authenticated_admin_can_access_subjects_view_with_class_management(): void
